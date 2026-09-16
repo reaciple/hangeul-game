@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>한글 마스터 대모험</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+        
+        body { margin: 0; padding: 0; background-color: #2c3e50; font-family: 'Jua', sans-serif; touch-action: manipulation; }
+        #game-container { max-width: 800px; height: 100vh; margin: 0 auto; background-color: #ecf0f1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* 공통 UI */
+        .screen { display: none; flex: 1; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .screen.active { display: flex; }
+        h1 { color: #2c3e50; font-size: 40px; margin-bottom: 20px; }
+        
+        /* 버튼 스타일 */
+        button { font-family: 'Jua', sans-serif; font-size: 24px; padding: 15px 30px; margin: 10px; border: none; border-radius: 15px; background-color: #3498db; color: white; cursor: pointer; box-shadow: 0 5px 0 #2980b9; transition: transform 0.1s; }
+        button:active { transform: translateY(5px); box-shadow: none; }
+        button.speaker-btn { background-color: #f1c40f; box-shadow: 0 5px 0 #f39c12; font-size: 30px; border-radius: 50%; width: 70px; height: 70px; padding: 0; margin-bottom: 20px;}
+        
+        /* 캐릭터 및 던전 선택 */
+        .char-box, .dungeon-box { background: white; border: 4px solid #bdc3c7; border-radius: 20px; padding: 20px; margin: 10px; cursor: pointer; display: inline-block; }
+        .dungeon-box { font-size: 60px; }
+        
+        /* 퀴즈 화면 */
+        #quiz-image { margin: 20px 0; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 500px; }
+        .option-btn { background-color: #1abc9c; box-shadow: 0 5px 0 #16a085; font-size: 32px; padding: 20px; }
+        
+        /* 전투 화면 */
+        .battle-stage { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 50px; box-sizing: border-box; }
+        .fighter { position: relative; transition: all 0.3s ease; text-align: center; }
+        .aura-blue { filter: drop-shadow(0 0 20px #3498db); }
+        .aura-yellow { filter: drop-shadow(0 0 20px #f1c40f); }
+        .aura-red { filter: drop-shadow(0 0 20px #e74c3c); }
+        
+        /* 애니메이션 */
+        @keyframes attackRight { 0% { transform: translateX(0); } 50% { transform: translateX(100px) rotate(15deg); } 100% { transform: translateX(0); } }
+        @keyframes attackLeft { 0% { transform: translateX(0); } 50% { transform: translateX(-100px) rotate(-15deg); } 100% { transform: translateX(0); } }
+        @keyframes hurt { 0% { filter: brightness(1); transform: scale(1); } 50% { filter: brightness(2) drop-shadow(0 0 20px red); transform: scale(0.9); } 100% { filter: brightness(1); transform: scale(1); } }
+        @keyframes fadeOut { to { opacity: 0; transform: scale(0.5); } }
+        
+        .anim-attack-right { animation: attackRight 0.4s ease; }
+        .anim-attack-left { animation: attackLeft 0.4s ease; }
+        .anim-hurt { animation: hurt 0.4s ease; }
+        .anim-die { animation: fadeOut 1s forwards; }
+
+        #feedback-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 10; }
+        #feedback-icon { font-size: 200px; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="feedback-overlay"><div id="feedback-icon"></div></div>
+
+    <!-- 1. 캐릭터 선택 화면 -->
+    <div id="screen-char-select" class="screen active">
+        <h1>누구로 모험을 떠날까요?</h1>
+        <div>
+            <!-- 이미지 경로(src)에 저장하신 파일 이름을 적어줍니다 -->
+            <div class="char-box" onclick="selectChar('warrior.png')">
+                <img src="warrior.png" style="width: 150px; height: 150px; object-fit: contain;" alt="전사"><br>
+                <span style="font-size:30px;">용감한 전사</span>
+            </div>
+            <div class="char-box" onclick="selectChar('princess.png')">
+                <img src="princess.png" style="width: 150px; height: 150px; object-fit: contain;" alt="공주"><br>
+                <span style="font-size:30px;">멋진 공주</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 월드 맵 화면 -->
+    <div id="screen-map" class="screen">
+        <h1>어디로 갈까요?</h1>
+        <div id="dungeon-list">
+            <div class="dungeon-box" onclick="enterDungeon(1)">🌲<br><span style="font-size:24px;">초보 던전</span></div>
+            <div class="dungeon-box" onclick="enterDungeon(2)">🍌<br><span style="font-size:24px;">과일 던전</span></div>
+            <div class="dungeon-box" onclick="enterDungeon(3)">🐯<br><span style="font-size:24px;">동물 던전</span></div>
+        </div>
+    </div>
+
+    <!-- 3. 퀴즈 화면 -->
+    <div id="screen-quiz" class="screen">
+        <h2 id="quiz-progress" style="color:#7f8c8d;">문제 1 / 3</h2>
+        <!-- 텍스트(innerText)가 아닌 HTML(이미지태그)가 들어가므로 뼈대를 바꿨습니다 -->
+        <div id="quiz-image"></div> 
+        <button class="speaker-btn" onclick="speakQuestion()">🔊</button>
+        <h1 id="quiz-text">문제 텍스트</h1>
+        <div class="options-grid" id="quiz-options"></div>
+    </div>
+
+    <!-- 4. 아이템 획득 화면 -->
+    <div id="screen-reward" class="screen">
+        <h1>정답입니다! 아이템 획득!</h1>
+        <div id="reward-icon" style="margin: 20px;"></div>
+        <h2>캐릭터가 강해졌어요!</h2>
+        <button onclick="startBattle()">괴물 물리치러 가기!</button>
+    </div>
+
+    <!-- 5. 전투 화면 -->
+    <div id="screen-battle" class="screen">
+        <h1>전투 시작!</h1>
+        <div class="battle-stage">
+            <div class="fighter" id="battle-player"></div>
+            <div class="fighter" id="battle-monster"></div>
+        </div>
+        <h2 id="battle-message">자동 전투가 진행 중입니다...</h2>
+        <button id="btn-return-map" style="display:none;" onclick="returnToMap()">지도 화면으로</button>
+    </div>
+</div>
+
+<script>
+    let playerImgSrc = '';
+    let currentDungeonIndex = 1;
+    let currentQuizIndex = 0;
+
+    // 던전별 데이터 (이미지 파일명 세팅)
+    const dungeons = {
+        1: {
+            monster: '<img src="monster1.png" style="width: 150px; height: 150px; object-fit: contain;">', 
+            item: '<img src="item1.png" style="width: 100px; height: 100px; object-fit: contain;">', 
+            aura: 'aura-blue',
+            quizzes: [
+                { q: "기역을 고르세요.", img: '<div style="font-size:120px;">❓</div>', options: ["ㄱ", "ㄴ", "ㄷ", "ㄹ"], ans: 0 },
+                { q: "니은을 고르세요.", img: '<div style="font-size:120px;">❓</div>', options: ["ㄹ", "ㄴ", "ㅁ", "ㄱ"], ans: 1 },
+                { q: "디귿을 고르세요.", img: '<div style="font-size:120px;">❓</div>', options: ["ㄱ", "ㄷ", "ㅂ", "ㅅ"], ans: 1 }
+            ]
+        },
+        2: {
+            monster: '<img src="monster2.png" style="width: 150px; height: 150px; object-fit: contain;">', 
+            item: '<img src="item2.png" style="width: 100px; height: 100px; object-fit: contain;">', 
+            aura: 'aura-yellow',
+            quizzes: [
+                { q: "바나나를 고르세요.", img: '<img src="banana.png" style="width: 200px; height: 200px; object-fit: contain;">', options: ["체리", "토마토", "바나나", "사과"], ans: 2 },
+                { q: "사과를 고르세요.", img: '<div style="font-size:120px;">🍎</div>', options: ["사과", "포도", "수박", "딸기"], ans: 0 },
+                { q: "포도를 고르세요.", img: '<div style="font-size:120px;">🍇</div>', options: ["귤", "바나나", "사과", "포도"], ans: 3 }
+            ]
+        },
+        3: {
+            monster: '<img src="monster3.png" style="width: 150px; height: 150px; object-fit: contain;">', 
+            item: '<img src="item3.png" style="width: 100px; height: 100px; object-fit: contain;">', 
+            aura: 'aura-red',
+            quizzes: [
+                { q: "호랑이를 고르세요.", img: '<img src="tiger.png" style="width: 200px; height: 200px; object-fit: contain;">', options: ["사자", "무플론", "사슴", "호랑이"], ans: 3 },
+                { q: "사자를 고르세요.", img: '<div style="font-size:120px;">🦁</div>', options: ["코끼리", "사자", "토끼", "기린"], ans: 1 },
+                { q: "코끼리를 고르세요.", img: '<div style="font-size:120px;">🐘</div>', options: ["코끼리", "원숭이", "돼지", "강아지"], ans: 0 }
+            ]
+        }
+    };
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        if (type === 'wrong') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === 'correct') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === 'hit') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+    }
+
+    function speakQuestion() {
+        const text = dungeons[currentDungeonIndex].quizzes[currentQuizIndex].q;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.pitch = 1.6;
+        utterance.rate = 0.9; 
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function selectChar(imgSrc) {
+        playerImgSrc = imgSrc;
+        if(audioCtx.state === 'suspended') audioCtx.resume(); 
+        showScreen('screen-map');
+    }
+
+    function enterDungeon(dungeonIdx) {
+        currentDungeonIndex = dungeonIdx;
+        currentQuizIndex = 0;
+        loadQuiz();
+        showScreen('screen-quiz');
+    }
+
+    function loadQuiz() {
+        const d = dungeons[currentDungeonIndex];
+        const q = d.quizzes[currentQuizIndex];
+        
+        document.getElementById('quiz-progress').innerText = `문제 ${currentQuizIndex + 1} / 3`;
+        
+        // innerText 대신 innerHTML 사용 (이미지 태그를 넣기 위함)
+        document.getElementById('quiz-image').innerHTML = q.img;
+        document.getElementById('quiz-text').innerText = q.q;
+        
+        const optionsDiv = document.getElementById('quiz-options');
+        optionsDiv.innerHTML = '';
+        
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(idx, q.ans);
+            optionsDiv.appendChild(btn);
+        });
+
+        setTimeout(speakQuestion, 300);
+    }
+
+    function checkAnswer(selectedIdx, correctIdx) {
+        const overlay = document.getElementById('feedback-overlay');
+        const icon = document.getElementById('feedback-icon');
+        overlay.style.display = 'flex';
+
+        if (selectedIdx === correctIdx) {
+            playSound('correct');
+            icon.innerText = '⭕';
+            icon.style.color = '#2ecc71';
+            
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                currentQuizIndex++;
+                if (currentQuizIndex >= 3) {
+                    showReward();
+                } else {
+                    loadQuiz();
+                }
+            }, 1000);
+        } else {
+            playSound('wrong');
+            icon.innerText = '❌';
+            icon.style.color = '#e74c3c';
+            
+            setTimeout(() => { overlay.style.display = 'none'; }, 1000);
+        }
+    }
+
+    function showReward() {
+        const d = dungeons[currentDungeonIndex];
+        // 획득한 아이템 이미지를 표시
+        document.getElementById('reward-icon').innerHTML = d.item;
+        showScreen('screen-reward');
+    }
+
+    function startBattle() {
+        showScreen('screen-battle');
+        const d = dungeons[currentDungeonIndex];
+        const p = document.getElementById('battle-player');
+        const m = document.getElementById('battle-monster');
+        const msg = document.getElementById('battle-message');
+        const btn = document.getElementById('btn-return-map');
+        
+        // 캐릭터 셋팅 (선택한 캐릭터 이미지 + 무기 아이템 이미지를 합쳐서 표시)
+        p.innerHTML = `<img src="${playerImgSrc}" style="width: 120px; height: 120px; object-fit: contain;"><br>${d.item}`;
+        p.className = 'fighter ' + d.aura; 
+        
+        // 몬스터 셋팅
+        m.innerHTML = d.monster;
+        m.className = 'fighter';
+        
+        msg.innerText = "전투 시작!!";
+        btn.style.display = 'none';
+
+        let attacks = 0;
+        const battleInterval = setInterval(() => {
+            attacks++;
+            
+            if (attacks === 1 || attacks === 3) {
+                p.classList.add('anim-attack-right');
+                setTimeout(() => { playSound('hit'); m.classList.add('anim-hurt'); }, 200);
+                setTimeout(() => { p.classList.remove('anim-attack-right'); m.classList.remove('anim-hurt'); }, 400);
+            } else if (attacks === 2) {
+                m.classList.add('anim-attack-left');
+                setTimeout(() => { playSound('hit'); p.classList.add('anim-hurt'); }, 200);
+                setTimeout(() => { m.classList.remove('anim-attack-left'); p.classList.remove('anim-hurt'); }, 400);
+            } else if (attacks > 3) {
+                clearInterval(battleInterval);
+                m.classList.add('anim-die');
+                msg.innerText = "괴물을 물리쳤다! 승리!! 🎉";
+                playSound('correct');
+                
+                p.style.transform = 'translateY(-50px)';
+                setTimeout(() => p.style.transform = 'translateY(0)', 200);
+                setTimeout(() => p.style.transform = 'translateY(-50px)', 400);
+                setTimeout(() => p.style.transform = 'translateY(0)', 600);
+                
+                setTimeout(() => btn.style.display = 'inline-block', 1000);
+            }
+        }, 1200);
+    }
+
+    function returnToMap() {
+        showScreen('screen-map');
+    }
+</script>
+
+</body>
+</html>
