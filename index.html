@@ -7,57 +7,69 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
         
-        body { margin: 0; padding: 0; background-color: #2c3e50; font-family: 'Jua', sans-serif; touch-action: manipulation; }
+        body { margin: 0; padding: 0; background-color: #2c3e50; font-family: 'Jua', sans-serif; touch-action: manipulation; overflow: hidden; }
         
-        /* 스크롤이 자연스럽게 되도록 flex 대신 block 형태와 overflow-y 적용 */
+        /* 스크롤 및 화면 구성 */
         #game-container { max-width: 800px; height: 100vh; margin: 0 auto; background-color: #ecf0f1; position: relative; overflow-y: auto; overflow-x: hidden; }
-        
-        /* 화면(screen) 최소 높이를 100vh로 주어 중앙 정렬과 스크롤을 동시 지원 */
         .screen { display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; box-sizing: border-box; }
         .screen.active { display: flex; }
         h1 { color: #2c3e50; font-size: 40px; margin-bottom: 20px; }
         
-        /* 버튼 스타일 */
+        /* 공통 버튼 */
         button { font-family: 'Jua', sans-serif; font-size: 24px; padding: 15px 30px; margin: 10px; border: none; border-radius: 15px; background-color: #3498db; color: white; cursor: pointer; box-shadow: 0 5px 0 #2980b9; transition: transform 0.1s; }
         button:active { transform: translateY(5px); box-shadow: none; }
         button.speaker-btn { background-color: #f1c40f; box-shadow: 0 5px 0 #f39c12; font-size: 30px; border-radius: 50%; width: 70px; height: 70px; padding: 0; margin-bottom: 20px;}
         
-        /* 캐릭터 및 던전 선택 */
+        /* 선택 박스 */
         .char-box, .dungeon-box { background: white; border: 4px solid #bdc3c7; border-radius: 20px; padding: 20px; margin: 10px; cursor: pointer; display: inline-block; }
         .dungeon-box { font-size: 60px; }
         
-        /* 퀴즈 화면 */
-        #quiz-image { margin: 10px 0; max-width: 100%; }
-        #quiz-image img { max-width: 100%; max-height: 25vh; object-fit: contain; } /* 이미지가 너무 커서 화면을 덮지 않게 조절 */
+        /* 퀴즈 UI */
+        #quiz-image { margin: 10px 0; max-width: 100%; position: relative; }
+        #quiz-image img { max-width: 100%; max-height: 25vh; object-fit: contain; }
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 500px; margin-top: 20px; }
         .option-btn { background-color: #1abc9c; box-shadow: 0 5px 0 #16a085; font-size: 32px; padding: 20px; }
         
-        /* 전투 화면 */
-        .battle-stage { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 50px 20px; box-sizing: border-box; }
-        .fighter { position: relative; transition: all 0.3s ease; text-align: center; }
-        .aura-blue { filter: drop-shadow(0 0 20px #3498db); }
-        .aura-yellow { filter: drop-shadow(0 0 20px #f1c40f); }
-        .aura-red { filter: drop-shadow(0 0 20px #e74c3c); }
+        /* 전투 스테이지 및 캐릭터 배치 */
+        .battle-stage { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; height: 250px; padding: 20px 40px; box-sizing: border-box; margin-top: 20px;}
+        .fighter { position: relative; text-align: center; }
+        .fighter img.character-body { width: 120px; height: 120px; object-fit: contain; z-index: 2; position: relative; }
         
-        /* 애니메이션 */
-        @keyframes attackRight { 0% { transform: translateX(0); } 50% { transform: translateX(80px) rotate(15deg); } 100% { transform: translateX(0); } }
-        @keyframes attackLeft { 0% { transform: translateX(0); } 50% { transform: translateX(-80px) rotate(-15deg); } 100% { transform: translateX(0); } }
-        @keyframes hurt { 0% { filter: brightness(1); transform: scale(1); } 50% { filter: brightness(2) drop-shadow(0 0 20px red); transform: scale(0.9); } 100% { filter: brightness(1); transform: scale(1); } }
-        @keyframes fadeOut { to { opacity: 0; transform: scale(0.5); } }
+        /* 무기 장착 스타일 */
+        .equipped-weapon { position: absolute; top: 10px; right: -40px; width: 80px; height: 80px; object-fit: contain; z-index: 3; transform-origin: bottom left; }
         
-        .anim-attack-right { animation: attackRight 0.4s ease; }
-        .anim-attack-left { animation: attackLeft 0.4s ease; }
-        .anim-hurt { animation: hurt 0.4s ease; }
-        .anim-die { animation: fadeOut 1s forwards; }
+        /* 몬스터 스타일 */
+        .monster-body { width: 130px; height: 130px; object-fit: contain; z-index: 2; position: relative; transition: all 0.2s; }
+        
+        /* 오라 이펙트 */
+        .aura-blue { filter: drop-shadow(0 0 15px #3498db); }
+        .aura-yellow { filter: drop-shadow(0 0 15px #f1c40f); }
+        .aura-red { filter: drop-shadow(0 0 15px #e74c3c); }
+        
+        /* 전투 애니메이션 */
+        @keyframes rushRight { 0% { transform: translateX(0); } 50% { transform: translateX(80px); } 100% { transform: translateX(0); } }
+        @keyframes swingWeapon { 0% { transform: rotate(0deg); } 40% { transform: rotate(90deg); } 100% { transform: rotate(0deg); } }
+        @keyframes monsterHurt { 0% { filter: brightness(1); transform: translateX(0); } 30% { filter: brightness(2) sepia(1) hue-rotate(-50deg); transform: translateX(10px); } 100% { filter: brightness(1); transform: translateX(0); } }
+        @keyframes monsterDie { to { opacity: 0; transform: scale(0.1) rotate(180deg); } }
+        
+        .anim-rush-right { animation: rushRight 0.5s ease; }
+        .anim-swing { animation: swingWeapon 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .anim-hurt { animation: monsterHurt 0.4s ease; }
+        .anim-die { animation: monsterDie 0.8s forwards; }
+
+        /* 타격 이펙트 (무기별) */
+        .hit-effect { position: absolute; top: 20px; left: 10px; width: 100px; height: 100px; opacity: 0; pointer-events: none; z-index: 5; }
+        @keyframes flashEffect { 0% { opacity: 1; transform: scale(0.5); } 100% { opacity: 0; transform: scale(1.5); } }
+        .effect-slash { background: linear-gradient(135deg, transparent 40%, white 50%, transparent 60%); animation: flashEffect 0.3s ease-out; }
+        .effect-magic { background: radial-gradient(circle, #f1c40f 0%, transparent 70%); animation: flashEffect 0.4s ease-out; }
+        .effect-fire { background: radial-gradient(circle, #e74c3c 0%, #f39c12 50%, transparent 80%); animation: flashEffect 0.3s ease-out; }
 
         #feedback-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100; }
         #feedback-icon { font-size: 200px; }
 
-        /* 화면이 작은 기기를 위한 반응형 처리 */
         @media (max-width: 500px) {
             h1 { font-size: 28px; margin-bottom: 10px; }
             .option-btn { font-size: 24px; padding: 15px; }
-            .speaker-btn { width: 60px; height: 60px; font-size: 24px; }
             .char-box, .dungeon-box { padding: 15px; }
         }
     </style>
@@ -67,7 +79,7 @@
 <div id="game-container">
     <div id="feedback-overlay"><div id="feedback-icon"></div></div>
 
-    <!-- 1. 캐릭터 선택 화면 -->
+    <!-- 1. 캐릭터 선택 -->
     <div id="screen-char-select" class="screen active">
         <h1>누구로 모험을 떠날까요?</h1>
         <div>
@@ -82,7 +94,7 @@
         </div>
     </div>
 
-    <!-- 2. 월드 맵 화면 -->
+    <!-- 2. 월드 맵 -->
     <div id="screen-map" class="screen">
         <h1>어디로 갈까요?</h1>
         <div id="dungeon-list">
@@ -101,22 +113,26 @@
         <div class="options-grid" id="quiz-options"></div>
     </div>
 
-    <!-- 4. 아이템 획득 화면 -->
+    <!-- 4. 아이템 획득 -->
     <div id="screen-reward" class="screen">
-        <h1>정답입니다! 아이템 획득!</h1>
+        <h1>정답입니다! 무기 획득!</h1>
         <div id="reward-icon" style="margin: 20px;"></div>
-        <h2>캐릭터가 강해졌어요!</h2>
+        <h2>새로운 무기를 장착했어요!</h2>
         <button onclick="startBattle()">괴물 물리치러 가기!</button>
     </div>
 
     <!-- 5. 전투 화면 -->
     <div id="screen-battle" class="screen">
-        <h1>전투 시작!</h1>
+        <h1>자동 전투 시작!</h1>
         <div class="battle-stage">
-            <div class="fighter" id="battle-player"></div>
-            <div class="fighter" id="battle-monster"></div>
+            <div class="fighter" id="battle-player">
+                <!-- 캐릭터와 무기가 조립되는 영역 -->
+            </div>
+            <div class="fighter" id="battle-monster-container">
+                <!-- 몬스터와 타격 이펙트가 조립되는 영역 -->
+            </div>
         </div>
-        <h2 id="battle-message">자동 전투가 진행 중입니다...</h2>
+        <h2 id="battle-message" style="margin-top: 40px;">전투가 진행 중입니다...</h2>
         <button id="btn-return-map" style="display:none;" onclick="returnToMap()">지도 화면으로</button>
     </div>
 </div>
@@ -126,12 +142,12 @@
     let currentDungeonIndex = 1;
     let currentQuizIndex = 0;
 
-    // 던전별 데이터 (text는 화면 출력용, tts는 음성 출력용)
+    // 무기 이펙트 클래스 매핑
+    const attackEffects = { 1: 'effect-slash', 2: 'effect-magic', 3: 'effect-fire' };
+
     const dungeons = {
         1: {
-            monster: '<img src="monster1.png" style="width: 150px; height: 150px; object-fit: contain;">', 
-            item: '<img src="item1.png" style="width: 100px; height: 100px; object-fit: contain;">', 
-            aura: 'aura-blue',
+            monster: 'monster1.png', item: 'item1.png', aura: 'aura-blue',
             quizzes: [
                 { text: "기역을 고르세요.", tts: "기역을 고르세요.", img: '<div style="font-size:120px;">❓</div>', options: ["ㄱ", "ㄴ", "ㄷ", "ㄹ"], ans: 0 },
                 { text: "니은을 고르세요.", tts: "니은을 고르세요.", img: '<div style="font-size:120px;">❓</div>', options: ["ㄹ", "ㄴ", "ㅁ", "ㄱ"], ans: 1 },
@@ -139,9 +155,7 @@
             ]
         },
         2: {
-            monster: '<img src="monster2.png" style="width: 150px; height: 150px; object-fit: contain;">', 
-            item: '<img src="item2.png" style="width: 100px; height: 100px; object-fit: contain;">', 
-            aura: 'aura-yellow',
+            monster: 'monster2.png', item: 'item2.png', aura: 'aura-yellow',
             quizzes: [
                 { text: "그림에 알맞은 것을 고르세요!", tts: "바나나를 고르세요.", img: '<img src="banana.png" style="width: 200px; height: 200px; object-fit: contain;">', options: ["체리", "토마토", "바나나", "사과"], ans: 2 },
                 { text: "그림에 알맞은 것을 고르세요!", tts: "사과를 고르세요.", img: '<div style="font-size:120px;">🍎</div>', options: ["사과", "포도", "수박", "딸기"], ans: 0 },
@@ -149,9 +163,7 @@
             ]
         },
         3: {
-            monster: '<img src="monster3.png" style="width: 150px; height: 150px; object-fit: contain;">', 
-            item: '<img src="item3.png" style="width: 100px; height: 100px; object-fit: contain;">', 
-            aura: 'aura-red',
+            monster: 'monster3.png', item: 'item3.png', aura: 'aura-red',
             quizzes: [
                 { text: "그림에 알맞은 동물을 고르세요!", tts: "호랑이를 고르세요.", img: '<img src="tiger.png" style="width: 200px; height: 200px; object-fit: contain;">', options: ["사자", "무플론", "사슴", "호랑이"], ans: 3 },
                 { text: "그림에 알맞은 동물을 고르세요!", tts: "사자를 고르세요.", img: '<div style="font-size:120px;">🦁</div>', options: ["코끼리", "사자", "토끼", "기린"], ans: 1 },
@@ -160,57 +172,120 @@
         }
     };
 
+    // --- 오디오 신디사이저 업그레이드 ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
     function playSound(type) {
         if(audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        
-        if (type === 'wrong') {
+        const t = audioCtx.currentTime;
+
+        if (type === 'correct') {
+            // 화음 (아르페지오)
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                gain.gain.setValueAtTime(0, t + i * 0.08);
+                gain.gain.linearRampToValueAtTime(0.2, t + i * 0.08 + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + i * 0.08 + 0.3);
+                osc.start(t + i * 0.08);
+                osc.stop(t + i * 0.08 + 0.3);
+            });
+        } else if (type === 'wrong') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime); 
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-        } else if (type === 'correct') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-        } else if (type === 'hit') {
+            osc.frequency.setValueAtTime(200, t);
+            osc.frequency.exponentialRampToValueAtTime(100, t + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            gain.gain.setValueAtTime(0.3, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+            osc.start(t); osc.stop(t + 0.3);
+        } else if (type === 'hit_sword') {
+            // 날카로운 검 소리
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
             osc.type = 'square';
-            osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            osc.frequency.setValueAtTime(800, t);
+            osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            gain.gain.setValueAtTime(0.3, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+            osc.start(t); osc.stop(t + 0.1);
+        } else if (type === 'hit_magic') {
+            // 뾰롱 하는 마법 소리
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, t);
+            osc.frequency.linearRampToValueAtTime(1200, t + 0.15);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            gain.gain.setValueAtTime(0.2, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+            osc.start(t); osc.stop(t + 0.15);
+        } else if (type === 'hit_fire') {
+            // 묵직한 폭발음
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, t);
+            osc.frequency.exponentialRampToValueAtTime(40, t + 0.3);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            gain.gain.setValueAtTime(0.4, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+            osc.start(t); osc.stop(t + 0.3);
+        } else if (type === 'victory') {
+            // 승리의 팡파르
+            [440, 554.37, 659.25, 880].forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = freq;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                const startTime = t + (i < 3 ? i * 0.15 : 0.6);
+                const duration = i < 3 ? 0.1 : 0.6;
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.15, startTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+                osc.start(startTime); osc.stop(startTime + duration);
+            });
         }
     }
 
+    // --- 목소리 로딩 및 개선 ---
+    let voices = [];
+    window.speechSynthesis.onvoiceschanged = () => {
+        voices = window.speechSynthesis.getVoices();
+    };
+
     function speakQuestion() {
-        // 음성 출력은 tts용 텍스트를 사용
         const ttsText = dungeons[currentDungeonIndex].quizzes[currentQuizIndex].tts;
         const utterance = new SpeechSynthesisUtterance(ttsText);
+        
+        // 최대한 자연스럽거나 귀여운 한국어 음성 찾기
+        const koVoices = voices.filter(v => v.lang.includes('ko'));
+        if (koVoices.length > 0) {
+            // 삼성, 구글 등 기기에 따라 이름이 다름. 첫 번째 한국어 음성 사용
+            utterance.voice = koVoices[0];
+        }
+        
         utterance.lang = 'ko-KR';
-        utterance.pitch = 1.6;
-        utterance.rate = 0.9; 
+        utterance.pitch = 1.4; // 피치를 높여 아이들 귀에 잘 들리게
+        utterance.rate = 0.95; 
         window.speechSynthesis.speak(utterance);
     }
 
     function showScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
-        
-        // 스크롤 맨 위로 올리기 (화면 전환 시)
         document.getElementById('game-container').scrollTop = 0;
     }
 
     function selectChar(imgSrc) {
         playerImgSrc = imgSrc;
         if(audioCtx.state === 'suspended') audioCtx.resume(); 
+        // 팡파르 등 사운드 초기화 위함
         showScreen('screen-map');
     }
 
@@ -227,8 +302,6 @@
         
         document.getElementById('quiz-progress').innerText = `문제 ${currentQuizIndex + 1} / 3`;
         document.getElementById('quiz-image').innerHTML = q.img;
-        
-        // 화면 출력은 text 속성을 사용
         document.getElementById('quiz-text').innerText = q.text;
         
         const optionsDiv = document.getElementById('quiz-options');
@@ -263,7 +336,7 @@
                 } else {
                     loadQuiz();
                 }
-            }, 1000);
+            }, 1200);
         } else {
             playSound('wrong');
             icon.innerText = '❌';
@@ -275,7 +348,7 @@
 
     function showReward() {
         const d = dungeons[currentDungeonIndex];
-        document.getElementById('reward-icon').innerHTML = d.item;
+        document.getElementById('reward-icon').innerHTML = `<img src="${d.item}" style="width:150px; height:150px; object-fit:contain;">`;
         showScreen('screen-reward');
     }
 
@@ -283,15 +356,21 @@
         showScreen('screen-battle');
         const d = dungeons[currentDungeonIndex];
         const p = document.getElementById('battle-player');
-        const m = document.getElementById('battle-monster');
+        const mContainer = document.getElementById('battle-monster-container');
         const msg = document.getElementById('battle-message');
         const btn = document.getElementById('btn-return-map');
         
-        p.innerHTML = `<img src="${playerImgSrc}" style="width: 120px; height: 120px; object-fit: contain;"><br>${d.item}`;
-        p.className = 'fighter ' + d.aura; 
+        // 1. 플레이어 조립 (캐릭터 이미지 + 장착한 무기 이미지)
+        p.innerHTML = `
+            <img src="${playerImgSrc}" class="character-body ${d.aura}">
+            <img src="${d.item}" class="equipped-weapon" id="weapon-img">
+        `;
         
-        m.innerHTML = d.monster;
-        m.className = 'fighter';
+        // 2. 몬스터 조립 (몬스터 이미지 + 타격 이펙트를 받을 보이지 않는 레이어)
+        mContainer.innerHTML = `
+            <img src="${d.monster}" class="monster-body" id="monster-img">
+            <div id="hit-layer" class="hit-effect"></div>
+        `;
         
         msg.innerText = "전투 시작!!";
         btn.style.display = 'none';
@@ -299,27 +378,48 @@
         let attacks = 0;
         const battleInterval = setInterval(() => {
             attacks++;
+            const weapon = document.getElementById('weapon-img');
+            const monster = document.getElementById('monster-img');
+            const hitLayer = document.getElementById('hit-layer');
+            
+            // 사운드 타입 매핑
+            const soundType = currentDungeonIndex === 1 ? 'hit_sword' : (currentDungeonIndex === 2 ? 'hit_magic' : 'hit_fire');
             
             if (attacks === 1 || attacks === 3) {
-                p.classList.add('anim-attack-right');
-                setTimeout(() => { playSound('hit'); m.classList.add('anim-hurt'); }, 200);
-                setTimeout(() => { p.classList.remove('anim-attack-right'); m.classList.remove('anim-hurt'); }, 400);
+                // 플레이어 공격: 몸통 돌진 + 무기 휘두르기 애니메이션
+                p.classList.add('anim-rush-right');
+                weapon.classList.add('anim-swing');
+                
+                setTimeout(() => { 
+                    playSound(soundType); 
+                    monster.classList.add('anim-hurt'); 
+                    // 타격 이펙트 발동
+                    hitLayer.className = `hit-effect ${attackEffects[currentDungeonIndex]}`;
+                }, 250); // 무기가 내려찍히는 타이밍
+                
+                setTimeout(() => { 
+                    p.classList.remove('anim-rush-right'); 
+                    weapon.classList.remove('anim-swing');
+                    monster.classList.remove('anim-hurt'); 
+                    hitLayer.className = 'hit-effect';
+                }, 500);
+
             } else if (attacks === 2) {
-                m.classList.add('anim-attack-left');
-                setTimeout(() => { playSound('hit'); p.classList.add('anim-hurt'); }, 200);
-                setTimeout(() => { m.classList.remove('anim-attack-left'); p.classList.remove('anim-hurt'); }, 400);
+                // 몬스터의 공격은 생략하거나 단순히 움찔거리는 정도로만 유지 (아이들 승리감 고취를 위해 플레이어의 일방적 공격으로 연출 수정)
+                msg.innerText = "연속 공격!!";
             } else if (attacks > 3) {
                 clearInterval(battleInterval);
-                m.classList.add('anim-die');
-                msg.innerText = "괴물을 물리쳤다! 승리!! 🎉";
-                playSound('correct');
+                monster.classList.add('anim-die');
+                msg.innerText = "괴물을 물리쳤다! 대승리!! 🎉";
+                playSound('victory');
                 
-                p.style.transform = 'translateY(-50px)';
+                // 승리 점프
+                p.style.transform = 'translateY(-30px)';
                 setTimeout(() => p.style.transform = 'translateY(0)', 200);
-                setTimeout(() => p.style.transform = 'translateY(-50px)', 400);
+                setTimeout(() => p.style.transform = 'translateY(-30px)', 400);
                 setTimeout(() => p.style.transform = 'translateY(0)', 600);
                 
-                setTimeout(() => btn.style.display = 'inline-block', 1000);
+                setTimeout(() => btn.style.display = 'inline-block', 1500);
             }
         }, 1200);
     }
