@@ -9,60 +9,60 @@
         
         body { margin: 0; padding: 0; background-color: #2c3e50; font-family: 'Jua', sans-serif; touch-action: manipulation; overflow: hidden; }
         
-        /* 스크롤 및 화면 구성 */
         #game-container { max-width: 800px; height: 100vh; margin: 0 auto; background-color: #ecf0f1; position: relative; overflow-y: auto; overflow-x: hidden; }
         .screen { display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; box-sizing: border-box; }
         .screen.active { display: flex; }
         h1 { color: #2c3e50; font-size: 40px; margin-bottom: 20px; }
         
-        /* 공통 버튼 */
         button { font-family: 'Jua', sans-serif; font-size: 24px; padding: 15px 30px; margin: 10px; border: none; border-radius: 15px; background-color: #3498db; color: white; cursor: pointer; box-shadow: 0 5px 0 #2980b9; transition: transform 0.1s; }
         button:active { transform: translateY(5px); box-shadow: none; }
         button.speaker-btn { background-color: #f1c40f; box-shadow: 0 5px 0 #f39c12; font-size: 30px; border-radius: 50%; width: 70px; height: 70px; padding: 0; margin-bottom: 20px;}
         
-        /* 선택 박스 */
+        /* 다다다다 연타를 위한 특수 타격 버튼 스타일 */
+        #btn-attack { background-color: #e74c3c; box-shadow: 0 8px 0 #c0392b; font-size: 40px; padding: 20px 50px; border-radius: 20px; margin-top: 30px; touch-action: none; user-select: none; -webkit-user-select: none; }
+        #btn-attack:active { transform: translateY(8px); box-shadow: 0 0 0 #c0392b; }
+
         .char-box, .dungeon-box { background: white; border: 4px solid #bdc3c7; border-radius: 20px; padding: 20px; margin: 10px; cursor: pointer; display: inline-block; }
         .dungeon-box { font-size: 60px; }
         
-        /* 퀴즈 UI */
         #quiz-image { margin: 10px 0; max-width: 100%; position: relative; }
         #quiz-image img { max-width: 100%; max-height: 25vh; object-fit: contain; }
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 500px; margin-top: 20px; }
         .option-btn { background-color: #1abc9c; box-shadow: 0 5px 0 #16a085; font-size: 32px; padding: 20px; }
         
-        /* 전투 스테이지 및 캐릭터 배치 */
         .battle-stage { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; height: 250px; padding: 20px 40px; box-sizing: border-box; margin-top: 20px;}
         .fighter { position: relative; text-align: center; }
-        .fighter img.character-body { width: 120px; height: 120px; object-fit: contain; z-index: 2; position: relative; }
+        .fighter img.character-body { width: 130px; height: 130px; object-fit: contain; z-index: 2; position: relative; }
         
-        /* 무기 장착 스타일 */
-        .equipped-weapon { position: absolute; top: 10px; right: -40px; width: 80px; height: 80px; object-fit: contain; z-index: 3; transform-origin: bottom left; }
+        .equipped-weapon { position: absolute; top: 10px; right: -40px; width: 90px; height: 90px; object-fit: contain; z-index: 3; transform-origin: bottom left; }
         
-        /* 몬스터 스타일 */
-        .monster-body { width: 130px; height: 130px; object-fit: contain; z-index: 2; position: relative; transition: all 0.2s; }
+        .monster-body { width: 140px; height: 140px; object-fit: contain; z-index: 2; position: relative; transition: all 0.1s; }
         
-        /* 오라 이펙트 */
+        /* 체력 바 UI */
+        .hp-container { width: 120px; height: 20px; background-color: #bdc3c7; border-radius: 10px; margin: 0 auto 10px auto; overflow: hidden; border: 3px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.2); }
+        .hp-bar { width: 100%; height: 100%; background-color: #e74c3c; transition: width 0.1s linear; }
+
         .aura-blue { filter: drop-shadow(0 0 15px #3498db); }
         .aura-yellow { filter: drop-shadow(0 0 15px #f1c40f); }
         .aura-red { filter: drop-shadow(0 0 15px #e74c3c); }
         
-        /* 전투 애니메이션 */
-        @keyframes rushRight { 0% { transform: translateX(0); } 50% { transform: translateX(80px); } 100% { transform: translateX(0); } }
+        @keyframes rushRight { 0% { transform: translateX(0); } 50% { transform: translateX(60px); } 100% { transform: translateX(0); } }
         @keyframes swingWeapon { 0% { transform: rotate(0deg); } 40% { transform: rotate(90deg); } 100% { transform: rotate(0deg); } }
-        @keyframes monsterHurt { 0% { filter: brightness(1); transform: translateX(0); } 30% { filter: brightness(2) sepia(1) hue-rotate(-50deg); transform: translateX(10px); } 100% { filter: brightness(1); transform: translateX(0); } }
+        @keyframes monsterHurt { 0% { filter: brightness(1); transform: translateX(0); } 30% { filter: brightness(2) sepia(1) hue-rotate(-50deg); transform: translateX(15px); } 100% { filter: brightness(1); transform: translateX(0); } }
         @keyframes monsterDie { to { opacity: 0; transform: scale(0.1) rotate(180deg); } }
         
-        .anim-rush-right { animation: rushRight 0.5s ease; }
-        .anim-swing { animation: swingWeapon 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .anim-hurt { animation: monsterHurt 0.4s ease; }
+        /* 연타를 위해 애니메이션 속도를 짧게 조정 */
+        .anim-rush-right { animation: rushRight 0.25s ease; }
+        .anim-swing { animation: swingWeapon 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .anim-hurt { animation: monsterHurt 0.25s ease; }
         .anim-die { animation: monsterDie 0.8s forwards; }
 
-        /* 타격 이펙트 (무기별) */
-        .hit-effect { position: absolute; top: 20px; left: 10px; width: 100px; height: 100px; opacity: 0; pointer-events: none; z-index: 5; }
+        .hit-effect { position: absolute; top: 30px; left: 20px; width: 100px; height: 100px; opacity: 0; pointer-events: none; z-index: 5; }
         @keyframes flashEffect { 0% { opacity: 1; transform: scale(0.5); } 100% { opacity: 0; transform: scale(1.5); } }
-        .effect-slash { background: linear-gradient(135deg, transparent 40%, white 50%, transparent 60%); animation: flashEffect 0.3s ease-out; }
-        .effect-magic { background: radial-gradient(circle, #f1c40f 0%, transparent 70%); animation: flashEffect 0.4s ease-out; }
-        .effect-fire { background: radial-gradient(circle, #e74c3c 0%, #f39c12 50%, transparent 80%); animation: flashEffect 0.3s ease-out; }
+        
+        .effect-slash { background: linear-gradient(135deg, transparent 40%, white 50%, transparent 60%); animation: flashEffect 0.2s ease-out; }
+        .effect-magic { background: radial-gradient(circle, #f1c40f 0%, transparent 70%); animation: flashEffect 0.25s ease-out; }
+        .effect-fire { background: radial-gradient(circle, #e74c3c 0%, #f39c12 50%, transparent 80%); animation: flashEffect 0.2s ease-out; }
 
         #feedback-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100; }
         #feedback-icon { font-size: 200px; }
@@ -71,6 +71,7 @@
             h1 { font-size: 28px; margin-bottom: 10px; }
             .option-btn { font-size: 24px; padding: 15px; }
             .char-box, .dungeon-box { padding: 15px; }
+            #btn-attack { font-size: 32px; padding: 15px 40px; }
         }
     </style>
 </head>
@@ -123,16 +124,17 @@
 
     <!-- 5. 전투 화면 -->
     <div id="screen-battle" class="screen">
-        <h1>자동 전투 시작!</h1>
+        <h1 id="battle-title">괴물을 물리쳐주세요!</h1>
         <div class="battle-stage">
             <div class="fighter" id="battle-player">
-                <!-- 캐릭터와 무기가 조립되는 영역 -->
+                <!-- 캐릭터 조립 -->
             </div>
             <div class="fighter" id="battle-monster-container">
-                <!-- 몬스터와 타격 이펙트가 조립되는 영역 -->
+                <!-- 몬스터, 체력바, 이펙트 조립 -->
             </div>
         </div>
-        <h2 id="battle-message" style="margin-top: 40px;">전투가 진행 중입니다...</h2>
+        <!-- 연타를 위한 특수 타격 버튼 (onpointerdown을 사용해 딜레이 0초로 즉시 반응) -->
+        <button id="btn-attack" onpointerdown="hitMonster(event)">물리치기! ⚔️</button>
         <button id="btn-return-map" style="display:none;" onclick="returnToMap()">지도 화면으로</button>
     </div>
 </div>
@@ -141,13 +143,19 @@
     let playerImgSrc = '';
     let currentDungeonIndex = 1;
     let currentQuizIndex = 0;
+    
+    // 전투 관련 변수
+    let monsterMaxHp = 7;
+    let monsterCurrentHp = 7;
+    let isMonsterDead = false;
 
-    // 무기 이펙트 클래스 매핑
     const attackEffects = { 1: 'effect-slash', 2: 'effect-magic', 3: 'effect-fire' };
 
+    // weaponStyle 속성 추가: 아이템 이미지마다의 크기/회전 보정
     const dungeons = {
         1: {
             monster: 'monster1.png', item: 'item1.png', aura: 'aura-blue',
+            weaponStyle: 'transform: rotate(0deg) scale(1.3);', // 일반 검 (크기만 조금 키움)
             quizzes: [
                 { text: "기역을 고르세요.", tts: "기역을 고르세요.", img: '<div style="font-size:120px;">❓</div>', options: ["ㄱ", "ㄴ", "ㄷ", "ㄹ"], ans: 0 },
                 { text: "니은을 고르세요.", tts: "니은을 고르세요.", img: '<div style="font-size:120px;">❓</div>', options: ["ㄹ", "ㄴ", "ㅁ", "ㄱ"], ans: 1 },
@@ -156,6 +164,7 @@
         },
         2: {
             monster: 'monster2.png', item: 'item2.png', aura: 'aura-yellow',
+            weaponStyle: 'transform: rotate(15deg) scale(1.4); right: -50px;', // 요술봉
             quizzes: [
                 { text: "그림에 알맞은 것을 고르세요!", tts: "바나나를 고르세요.", img: '<img src="banana.png" style="width: 200px; height: 200px; object-fit: contain;">', options: ["체리", "토마토", "바나나", "사과"], ans: 2 },
                 { text: "그림에 알맞은 것을 고르세요!", tts: "사과를 고르세요.", img: '<div style="font-size:120px;">🍎</div>', options: ["사과", "포도", "수박", "딸기"], ans: 0 },
@@ -164,6 +173,7 @@
         },
         3: {
             monster: 'monster3.png', item: 'item3.png', aura: 'aura-red',
+            weaponStyle: 'transform: rotate(-45deg) scale(1.6); right: -40px; top: -10px;', // 가로로 누운 불꽃검 세우기 및 확대
             quizzes: [
                 { text: "그림에 알맞은 동물을 고르세요!", tts: "호랑이를 고르세요.", img: '<img src="tiger.png" style="width: 200px; height: 200px; object-fit: contain;">', options: ["사자", "무플론", "사슴", "호랑이"], ans: 3 },
                 { text: "그림에 알맞은 동물을 고르세요!", tts: "사자를 고르세요.", img: '<div style="font-size:120px;">🦁</div>', options: ["코끼리", "사자", "토끼", "기린"], ans: 1 },
@@ -172,7 +182,6 @@
         }
     };
 
-    // --- 오디오 신디사이저 업그레이드 ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
     function playSound(type) {
@@ -180,68 +189,53 @@
         const t = audioCtx.currentTime;
 
         if (type === 'correct') {
-            // 화음 (아르페지오)
             [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = freq;
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                osc.type = 'sine'; osc.frequency.value = freq;
+                osc.connect(gain); gain.connect(audioCtx.destination);
                 gain.gain.setValueAtTime(0, t + i * 0.08);
                 gain.gain.linearRampToValueAtTime(0.2, t + i * 0.08 + 0.02);
                 gain.gain.exponentialRampToValueAtTime(0.01, t + i * 0.08 + 0.3);
-                osc.start(t + i * 0.08);
-                osc.stop(t + i * 0.08 + 0.3);
+                osc.start(t + i * 0.08); osc.stop(t + i * 0.08 + 0.3);
             });
         } else if (type === 'wrong') {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(200, t);
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, t);
             osc.frequency.exponentialRampToValueAtTime(100, t + 0.3);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            gain.gain.setValueAtTime(0.3, t);
-            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            gain.gain.setValueAtTime(0.3, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
             osc.start(t); osc.stop(t + 0.3);
         } else if (type === 'hit_sword') {
-            // 날카로운 검 소리
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(800, t);
+            osc.type = 'square'; osc.frequency.setValueAtTime(800, t);
             osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
             osc.connect(gain); gain.connect(audioCtx.destination);
             gain.gain.setValueAtTime(0.3, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
             osc.start(t); osc.stop(t + 0.1);
         } else if (type === 'hit_magic') {
-            // 뾰롱 하는 마법 소리
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(400, t);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(400, t);
             osc.frequency.linearRampToValueAtTime(1200, t + 0.15);
             osc.connect(gain); gain.connect(audioCtx.destination);
             gain.gain.setValueAtTime(0.2, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
             osc.start(t); osc.stop(t + 0.15);
         } else if (type === 'hit_fire') {
-            // 묵직한 폭발음
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, t);
-            osc.frequency.exponentialRampToValueAtTime(40, t + 0.3);
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, t);
+            osc.frequency.exponentialRampToValueAtTime(40, t + 0.2);
             osc.connect(gain); gain.connect(audioCtx.destination);
-            gain.gain.setValueAtTime(0.4, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
-            osc.start(t); osc.stop(t + 0.3);
+            gain.gain.setValueAtTime(0.4, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+            osc.start(t); osc.stop(t + 0.2);
         } else if (type === 'victory') {
-            // 승리의 팡파르
             [440, 554.37, 659.25, 880].forEach((freq, i) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.value = freq;
+                osc.type = 'square'; osc.frequency.value = freq;
                 osc.connect(gain); gain.connect(audioCtx.destination);
                 const startTime = t + (i < 3 ? i * 0.15 : 0.6);
                 const duration = i < 3 ? 0.1 : 0.6;
@@ -253,26 +247,15 @@
         }
     }
 
-    // --- 목소리 로딩 및 개선 ---
     let voices = [];
-    window.speechSynthesis.onvoiceschanged = () => {
-        voices = window.speechSynthesis.getVoices();
-    };
+    window.speechSynthesis.onvoiceschanged = () => { voices = window.speechSynthesis.getVoices(); };
 
     function speakQuestion() {
         const ttsText = dungeons[currentDungeonIndex].quizzes[currentQuizIndex].tts;
         const utterance = new SpeechSynthesisUtterance(ttsText);
-        
-        // 최대한 자연스럽거나 귀여운 한국어 음성 찾기
         const koVoices = voices.filter(v => v.lang.includes('ko'));
-        if (koVoices.length > 0) {
-            // 삼성, 구글 등 기기에 따라 이름이 다름. 첫 번째 한국어 음성 사용
-            utterance.voice = koVoices[0];
-        }
-        
-        utterance.lang = 'ko-KR';
-        utterance.pitch = 1.4; // 피치를 높여 아이들 귀에 잘 들리게
-        utterance.rate = 0.95; 
+        if (koVoices.length > 0) utterance.voice = koVoices[0];
+        utterance.lang = 'ko-KR'; utterance.pitch = 1.4; utterance.rate = 0.95; 
         window.speechSynthesis.speak(utterance);
     }
 
@@ -285,7 +268,6 @@
     function selectChar(imgSrc) {
         playerImgSrc = imgSrc;
         if(audioCtx.state === 'suspended') audioCtx.resume(); 
-        // 팡파르 등 사운드 초기화 위함
         showScreen('screen-map');
     }
 
@@ -357,71 +339,84 @@
         const d = dungeons[currentDungeonIndex];
         const p = document.getElementById('battle-player');
         const mContainer = document.getElementById('battle-monster-container');
-        const msg = document.getElementById('battle-message');
-        const btn = document.getElementById('btn-return-map');
         
-        // 1. 플레이어 조립 (캐릭터 이미지 + 장착한 무기 이미지)
+        // 체력 초기화
+        monsterCurrentHp = monsterMaxHp;
+        isMonsterDead = false;
+        document.getElementById('battle-title').innerText = "버튼을 눌러 괴물을 물리쳐주세요!";
+        document.getElementById('btn-attack').style.display = 'inline-block';
+        document.getElementById('btn-return-map').style.display = 'none';
+        
+        // 플레이어 조립 (각 아이템별 회전/크기 조정이 담긴 weaponStyle 적용)
         p.innerHTML = `
             <img src="${playerImgSrc}" class="character-body ${d.aura}">
-            <img src="${d.item}" class="equipped-weapon" id="weapon-img">
+            <img src="${d.item}" class="equipped-weapon" id="weapon-img" style="${d.weaponStyle}">
         `;
         
-        // 2. 몬스터 조립 (몬스터 이미지 + 타격 이펙트를 받을 보이지 않는 레이어)
+        // 몬스터 조립 (체력 바 추가)
         mContainer.innerHTML = `
+            <div class="hp-container"><div id="monster-hp-bar" class="hp-bar"></div></div>
             <img src="${d.monster}" class="monster-body" id="monster-img">
             <div id="hit-layer" class="hit-effect"></div>
         `;
+    }
+
+    // --- 수동 다다다다 타격 함수 ---
+    function hitMonster(event) {
+        // 더블 탭 확대나 기본 드래그 등 원치 않는 브라우저 터치 동작 방지
+        event.preventDefault();
         
-        msg.innerText = "전투 시작!!";
-        btn.style.display = 'none';
+        if (isMonsterDead) return; // 이미 죽었으면 타격 금지
 
-        let attacks = 0;
-        const battleInterval = setInterval(() => {
-            attacks++;
-            const weapon = document.getElementById('weapon-img');
-            const monster = document.getElementById('monster-img');
-            const hitLayer = document.getElementById('hit-layer');
-            
-            // 사운드 타입 매핑
-            const soundType = currentDungeonIndex === 1 ? 'hit_sword' : (currentDungeonIndex === 2 ? 'hit_magic' : 'hit_fire');
-            
-            if (attacks === 1 || attacks === 3) {
-                // 플레이어 공격: 몸통 돌진 + 무기 휘두르기 애니메이션
-                p.classList.add('anim-rush-right');
-                weapon.classList.add('anim-swing');
-                
-                setTimeout(() => { 
-                    playSound(soundType); 
-                    monster.classList.add('anim-hurt'); 
-                    // 타격 이펙트 발동
-                    hitLayer.className = `hit-effect ${attackEffects[currentDungeonIndex]}`;
-                }, 250); // 무기가 내려찍히는 타이밍
-                
-                setTimeout(() => { 
-                    p.classList.remove('anim-rush-right'); 
-                    weapon.classList.remove('anim-swing');
-                    monster.classList.remove('anim-hurt'); 
-                    hitLayer.className = 'hit-effect';
-                }, 500);
+        const p = document.getElementById('battle-player');
+        const weapon = document.getElementById('weapon-img');
+        const monster = document.getElementById('monster-img');
+        const hitLayer = document.getElementById('hit-layer');
+        const hpBar = document.getElementById('monster-hp-bar');
+        
+        // 1. 체력 깎기
+        monsterCurrentHp--;
+        const hpPercentage = (monsterCurrentHp / monsterMaxHp) * 100;
+        hpBar.style.width = hpPercentage + "%";
+        
+        // 2. 사운드 재생
+        const soundType = currentDungeonIndex === 1 ? 'hit_sword' : (currentDungeonIndex === 2 ? 'hit_magic' : 'hit_fire');
+        playSound(soundType);
 
-            } else if (attacks === 2) {
-                // 몬스터의 공격은 생략하거나 단순히 움찔거리는 정도로만 유지 (아이들 승리감 고취를 위해 플레이어의 일방적 공격으로 연출 수정)
-                msg.innerText = "연속 공격!!";
-            } else if (attacks > 3) {
-                clearInterval(battleInterval);
-                monster.classList.add('anim-die');
-                msg.innerText = "괴물을 물리쳤다! 대승리!! 🎉";
-                playSound('victory');
-                
-                // 승리 점프
-                p.style.transform = 'translateY(-30px)';
-                setTimeout(() => p.style.transform = 'translateY(0)', 200);
-                setTimeout(() => p.style.transform = 'translateY(-30px)', 400);
-                setTimeout(() => p.style.transform = 'translateY(0)', 600);
-                
-                setTimeout(() => btn.style.display = 'inline-block', 1500);
-            }
-        }, 1200);
+        // 3. 빠른 연속 타격을 위한 애니메이션 강제 초기화 (Reflow 트릭)
+        p.classList.remove('anim-rush-right');
+        weapon.classList.remove('anim-swing');
+        monster.classList.remove('anim-hurt');
+        hitLayer.classList.remove(attackEffects[currentDungeonIndex]);
+        
+        void p.offsetWidth; // 브라우저에게 변경사항을 강제로 즉시 계산하게 만듦 (리플로우)
+        
+        // 4. 애니메이션 재적용
+        p.classList.add('anim-rush-right');
+        weapon.classList.add('anim-swing');
+        monster.classList.add('anim-hurt');
+        hitLayer.classList.add(attackEffects[currentDungeonIndex]);
+
+        // 5. 괴물이 쓰러졌을 때의 승리 처리
+        if (monsterCurrentHp <= 0) {
+            isMonsterDead = true;
+            document.getElementById('btn-attack').style.display = 'none';
+            document.getElementById('battle-title').innerText = "대승리!! 🎉🎉🎉";
+            
+            monster.classList.add('anim-die');
+            playSound('victory');
+            
+            // 승리 점프 포즈
+            p.style.transition = 'transform 0.2s';
+            setTimeout(() => p.style.transform = 'translateY(-30px)', 100);
+            setTimeout(() => p.style.transform = 'translateY(0)', 300);
+            setTimeout(() => p.style.transform = 'translateY(-30px)', 500);
+            setTimeout(() => p.style.transform = 'translateY(0)', 700);
+            
+            setTimeout(() => {
+                document.getElementById('btn-return-map').style.display = 'inline-block';
+            }, 1000);
+        }
     }
 
     function returnToMap() {
