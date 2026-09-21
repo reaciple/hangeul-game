@@ -16,25 +16,29 @@
         
         button { font-family: 'Jua', sans-serif; font-size: 24px; padding: 15px 30px; margin: 10px; border: none; border-radius: 15px; background-color: #3498db; color: white; cursor: pointer; box-shadow: 0 5px 0 #2980b9; transition: transform 0.1s; }
         button:active { transform: translateY(5px); box-shadow: none; }
-        
         .btn-back { background-color: #95a5a6; box-shadow: 0 5px 0 #7f8c8d; margin-bottom: 20px; font-size: 20px; padding: 10px 20px; }
-        
         button.speaker-btn { background-color: #f1c40f; box-shadow: 0 5px 0 #f39c12; font-size: 30px; border-radius: 50%; width: 70px; height: 70px; padding: 0; margin-bottom: 20px;}
         
         #btn-attack { background-color: #e74c3c; box-shadow: 0 8px 0 #c0392b; font-size: 40px; padding: 20px 50px; border-radius: 20px; margin-top: 30px; touch-action: none; user-select: none; -webkit-user-select: none; }
         #btn-attack:active { transform: translateY(8px); box-shadow: 0 0 0 #c0392b; }
 
-        .char-box, .dungeon-box, .category-box { background: white; border: 4px solid #bdc3c7; border-radius: 20px; padding: 20px; margin: 10px; cursor: pointer; display: inline-block; width: 220px; }
+        .char-box, .dungeon-box, .category-box, .pet-box { background: white; border: 4px solid #bdc3c7; border-radius: 20px; padding: 20px; margin: 10px; cursor: pointer; display: inline-block; width: 220px; }
         .category-box { font-size: 60px; padding: 40px 20px; width: 250px; }
         .dungeon-box { font-size: 60px; }
         
-        /* 퀴즈 UI */
+        /* 펫 도감 스타일 */
+        .pet-box { width: 100px; height: 100px; padding: 10px; position: relative; }
+        .pet-box img { width: 100%; height: 100%; object-fit: contain; }
+        .pet-locked { filter: grayscale(100%) brightness(0.3); }
+        .pet-equipped { border-color: #f1c40f; background-color: #fff9c4; box-shadow: 0 0 15px #f1c40f; }
+
+        /* 하트 UI */
+        #hearts-display { position: absolute; top: 15px; right: 20px; font-size: 30px; z-index: 50; }
+        
         #quiz-image { margin: 10px 0; max-width: 100%; position: relative; }
         #quiz-image img { max-width: 100%; max-height: 22vh; object-fit: contain; }
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 500px; margin-top: 20px; }
         .option-btn { background-color: #1abc9c; box-shadow: 0 5px 0 #16a085; font-size: 30px; padding: 15px; transition: all 0.2s; }
-        
-        /* 오답 시 비활성화(회색) 버튼 스타일 */
         .option-btn.disabled { background-color: #95a5a6 !important; box-shadow: 0 5px 0 #7f8c8d !important; pointer-events: none; opacity: 0.8; }
         
         .battle-stage { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; height: 250px; padding: 20px 40px; box-sizing: border-box; margin-top: 20px;}
@@ -42,6 +46,11 @@
         .fighter img.character-body { width: 130px; height: 130px; object-fit: contain; z-index: 2; position: relative; }
         
         .equipped-weapon { position: absolute; z-index: 3; object-fit: contain; transform-origin: bottom left; }
+        
+        /* 펫 장착 시 둥둥 떠다니는 애니메이션 */
+        .equipped-pet { position: absolute; top: -30px; left: -40px; width: 60px; height: 60px; object-fit: contain; z-index: 4; animation: floatPet 2s ease-in-out infinite; }
+        @keyframes floatPet { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
         .monster-body { width: 140px; height: 140px; object-fit: contain; z-index: 2; position: relative; transition: all 0.1s; }
         
         .hp-container { width: 120px; height: 20px; background-color: #bdc3c7; border-radius: 10px; margin: 0 auto 10px auto; overflow: hidden; border: 3px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.2); }
@@ -70,19 +79,25 @@
         .effect-magic { background: radial-gradient(circle, #f1c40f 0%, transparent 70%); animation: flashEffect 0.25s ease-out; }
         .effect-fire { background: radial-gradient(circle, #e74c3c 0%, #f39c12 50%, transparent 80%); animation: flashEffect 0.2s ease-out; }
 
-        /* 피드백 오버레이 (정답/오답 연출) */
         #feedback-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 100; text-align: center; }
-        
-        /* 다시 생각해 보세요 문구 */
         .think-again-msg { font-size: 50px; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.5); line-height: 1.4; }
         
-        /* 황금빛 정답 텍스트 애니메이션 */
         @keyframes goldenPop {
             0% { transform: scale(0.5); opacity: 0; text-shadow: 0 0 0px #f39c12; }
             50% { transform: scale(1.3); opacity: 1; text-shadow: 0 0 20px #f39c12, 0 0 40px #f1c40f; }
             100% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 30px #f39c12, 0 0 50px #f1c40f; }
         }
         .golden-text { font-size: 120px; font-weight: bold; color: #fff200; animation: goldenPop 1.5s ease-out forwards; }
+
+        /* 색종이 폭죽 파티클 */
+        .confetti { position: absolute; width: 10px; height: 10px; z-index: 90; opacity: 0; }
+        @keyframes confettiFall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* 룰렛 스타일 */
+        .slot-name { font-size: 80px; font-weight: bold; color: #e74c3c; background: white; padding: 20px 50px; border-radius: 20px; border: 5px solid #c0392b; display: inline-block; min-width: 200px;}
 
         @media (max-width: 500px) {
             h1 { font-size: 28px; margin-bottom: 10px; }
@@ -91,27 +106,40 @@
             .category-box { font-size: 40px; padding: 20px 10px; width: 160px; }
             #btn-attack { font-size: 32px; padding: 15px 40px; }
             .battle-stage { padding: 20px; }
-            
-            /* 모바일에서 황금 텍스트/안내문 크기 조절 */
             .golden-text { font-size: 80px; }
             .think-again-msg { font-size: 35px; }
+            .pet-box { width: 70px; height: 70px; }
         }
     </style>
 </head>
 <body>
 
+<!-- BGM 오디오 태그 (파일이 없어도 에러는 나지 않습니다) -->
+<audio id="bgm-map" src="bgm_map.mp3" loop></audio>
+<audio id="bgm-battle" src="bgm_battle.mp3" loop></audio>
+
 <div id="game-container">
     <div id="feedback-overlay"><div id="feedback-icon"></div></div>
+    
+    <!-- 지도 등에 띄울 하트(에너지) -->
+    <div id="hearts-display" style="display:none;">❤️❤️❤️❤️❤️</div>
+
+    <!-- 0. 순서 정하기 (룰렛) -->
+    <div id="screen-turn" class="screen active">
+        <h1>누가 먼저 모험을 떠날까요?</h1>
+        <div class="slot-name" id="slot-name-display">???</div><br>
+        <button onclick="startTurnSlot()" style="font-size: 30px; padding: 20px 40px; margin-top: 30px;">순서 뽑기!</button>
+    </div>
 
     <!-- 1. 캐릭터 선택 -->
-    <div id="screen-char-select" class="screen active">
-        <h1>누구로 모험을 떠날까요?</h1>
+    <div id="screen-char-select" class="screen">
+        <h1 id="char-select-title">모험을 떠날 캐릭터를 고르세요!</h1>
         <div>
-            <div class="char-box" onclick="selectChar('warrior.png')">
+            <div class="char-box" onclick="selectChar('warrior.png', '연우')">
                 <img src="warrior.png" style="width: 120px; height: 120px; object-fit: contain;" alt="전사" onerror="this.outerHTML='<div style=\'font-size:80px;\'>👦</div>'"><br>
                 <span style="font-size:26px;">용감한 전사</span>
             </div>
-            <div class="char-box" onclick="selectChar('princess.png')">
+            <div class="char-box" onclick="selectChar('princess.png', '연아')">
                 <img src="princess.png" style="width: 120px; height: 120px; object-fit: contain;" alt="공주" onerror="this.outerHTML='<div style=\'font-size:80px;\'>👧</div>'"><br>
                 <span style="font-size:26px;">멋진 공주</span>
             </div>
@@ -129,15 +157,22 @@
                 📚<br><span style="font-size:26px;">한글나라 던전</span>
             </div>
         </div>
+        <button style="background-color:#9b59b6; box-shadow: 0 5px 0 #8e44ad; margin-top:30px;" onclick="showCollection()">📖 내 도감(펫) 보기</button>
     </div>
 
     <!-- 3. 월드 맵 (세부 던전 선택) -->
     <div id="screen-map" class="screen">
         <button class="btn-back" onclick="showScreen('screen-category')">⬅️ 뒤로가기</button>
         <h1 id="map-title">던전을 선택하세요!</h1>
-        <div id="dungeon-list">
-            <!-- 자바스크립트에서 생성됨 -->
-        </div>
+        <div id="dungeon-list"></div>
+    </div>
+
+    <!-- 도감 (펫) 화면 -->
+    <div id="screen-collection" class="screen">
+        <button class="btn-back" onclick="showScreen('screen-category')">⬅️ 뒤로가기</button>
+        <h1>나만의 펫 도감</h1>
+        <h3 style="color:#7f8c8d; margin-top:0;">던전을 깨면 펫이 모여요! 펫을 눌러 데리고 다니세요.</h3>
+        <div id="pet-list" style="max-width: 600px;"></div>
     </div>
 
     <!-- 4. 퀴즈 화면 -->
@@ -165,23 +200,48 @@
             <div class="fighter" id="battle-monster-container"></div>
         </div>
         <button id="btn-attack" onpointerdown="hitMonster(event)">물리치기! ⚔️</button>
-        <button id="btn-return-map" style="display:none;" onclick="returnToCategory()">다른 모험 떠나기</button>
+        <button id="btn-return-map" style="display:none;" onclick="returnToCategory()">돌아가기</button>
+    </div>
+
+    <!-- 수면 모드 (에너지 고갈) -->
+    <div id="screen-sleep" class="screen">
+        <div style="font-size: 150px;">😴💤</div>
+        <h1 id="sleep-msg">오늘은 너무 피곤해요.<br>코~ 자고 내일 다시 만나요!</h1>
+        <!-- 숨겨진 부모용 초기화 버튼 -->
+        <div onclick="resetHearts()" style="position:absolute; bottom:0; right:0; width:100px; height:100px; opacity: 0;"></div>
     </div>
 </div>
 
 <script>
+    // --- 게임 상태 및 저장 데이터 ---
     let playerImgSrc = '';
+    let playerName = '';
     let currentDungeonIndex = 1;
     let currentQuizIndex = 0;
     
+    // 에너지(하트), 도감(펫) 저장을 위한 LocalStorage 활용
+    let heartsData = JSON.parse(localStorage.getItem('hangeulHearts')) || { 'warrior.png': 5, 'princess.png': 5 };
+    let unlockedPets = parseInt(localStorage.getItem('hangeulPets')) || 0;
+    let equippedPet = localStorage.getItem('equippedPet') || null;
+
     let monsterMaxHp = 7;
     let monsterCurrentHp = 7;
     let isMonsterDead = false;
+    let ttsUnlocked = false; // iOS TTS 권한 해제용
 
     const categories = {
         normal: { title: "일반 던전", dungeons: [1, 2, 3] },
         hangeul: { title: "한글나라 던전", dungeons: [4, 5, 6, 7] }
     };
+
+    // 펫 데이터 10종
+    const pets = [
+        { id: 'pet1.png', name: '강아지', icon: '🐶' }, { id: 'pet2.png', name: '고양이', icon: '🐱' },
+        { id: 'pet3.png', name: '드래곤', icon: '🐲' }, { id: 'pet4.png', name: '병아리', icon: '🐥' },
+        { id: 'pet5.png', name: '아기곰', icon: '🐻' }, { id: 'pet6.png', name: '파랑새', icon: '🐦' },
+        { id: 'pet7.png', name: '거북이', icon: '🐢' }, { id: 'pet8.png', name: '유니콘', icon: '🦄' },
+        { id: 'pet9.png', name: '여우', icon: '🦊' }, { id: 'pet10.png', name: '펭귄', icon: '🐧' }
+    ];
 
     const dungeons = {
         1: {
@@ -209,7 +269,7 @@
             weaponStyle: 'width: 90px; height: 90px; transform: rotate(-45deg) scale(1.6); right: -50px; top: 40px;', 
             options: ["사자", "무플론", "사슴", "호랑이", "코끼리", "기린"],
             quizzes: [
-                { text: "이 그림은 무엇일까요?", tts: "호랑이를 고르세요.", img: '<img src="tiger.png">', correct: "호랑이" },
+                { text: "이 그림은 무엇일까요?", tts: "호랑이를 고르세요.", img: '<img src="tiger.png" onerror="this.outerHTML=\'<div style=font-size:120px;>🐯</div>\'">', correct: "호랑이" },
                 { text: "이 그림은 무엇일까요?", tts: "사자를 고르세요.", img: '<div style="font-size:120px;">🦁</div>', correct: "사자" },
                 { text: "이 그림은 무엇일까요?", tts: "코끼리를 고르세요.", img: '<div style="font-size:120px;">🐘</div>', correct: "코끼리" }
             ]
@@ -273,11 +333,21 @@
         return arr;
     }
 
+    // --- 오디오 / TTS / BGM 시스템 ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const bgmMap = document.getElementById('bgm-map');
+    const bgmBattle = document.getElementById('bgm-battle');
+    bgmMap.volume = 0.3; bgmBattle.volume = 0.4;
+
+    function playBGM(type) {
+        bgmMap.pause(); bgmBattle.pause();
+        if(type === 'map') { bgmMap.currentTime = 0; bgmMap.play().catch(e=>console.log(e)); }
+        else if(type === 'battle') { bgmBattle.currentTime = 0; bgmBattle.play().catch(e=>console.log(e)); }
+    }
+
     function playSound(type) {
         if(audioCtx.state === 'suspended') audioCtx.resume();
         const t = audioCtx.currentTime;
-
         if (type === 'correct') {
             [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
@@ -319,31 +389,116 @@
     let voices = [];
     window.speechSynthesis.onvoiceschanged = () => { voices = window.speechSynthesis.getVoices(); };
 
-    function speakQuestion() {
-        const ttsText = dungeons[currentDungeonIndex].quizzes[currentQuizIndex].tts;
-        const utterance = new SpeechSynthesisUtterance(ttsText);
+    // 첫 터치 시 iOS/태블릿용 TTS 해제 트릭
+    function unlockAudioAndTTS() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        if (!ttsUnlocked) {
+            let u = new SpeechSynthesisUtterance('');
+            u.volume = 0; window.speechSynthesis.speak(u);
+            ttsUnlocked = true;
+        }
+    }
+
+    function playTTS(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
         const koVoices = voices.filter(v => v.lang.includes('ko'));
         if (koVoices.length > 0) utterance.voice = koVoices[0];
         utterance.lang = 'ko-KR'; utterance.pitch = 1.4; utterance.rate = 0.95; 
         window.speechSynthesis.speak(utterance);
     }
 
+    function speakQuestion() {
+        const ttsText = dungeons[currentDungeonIndex].quizzes[currentQuizIndex].tts;
+        // 문제 앞에 맞춤형 이름 추가
+        playTTS(playerName + "님, " + ttsText);
+    }
+
+    // --- 폭죽 이펙트 ---
+    function fireConfetti() {
+        const colors = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+        for(let i=0; i<50; i++) {
+            let conf = document.createElement('div');
+            conf.className = 'confetti';
+            conf.style.left = Math.random() * 100 + '%';
+            conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            conf.style.animation = `confettiFall ${Math.random() * 1.5 + 1.5}s ease-in forwards`;
+            conf.style.animationDelay = Math.random() * 0.5 + 's';
+            document.body.appendChild(conf);
+            setTimeout(() => conf.remove(), 3000);
+        }
+    }
+
+    // --- 화면 전환 및 로직 ---
     function showScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
         document.getElementById('game-container').scrollTop = 0;
+        
+        if(screenId !== 'screen-battle') { document.getElementById('hearts-display').style.display = 'block'; } 
+        else { document.getElementById('hearts-display').style.display = 'none'; }
     }
 
-    function selectChar(imgSrc) {
+    function updateHeartsDisplay() {
+        if(!playerImgSrc) return;
+        const hp = heartsData[playerImgSrc];
+        let heartStr = '';
+        for(let i=0; i<5; i++) { heartStr += (i < hp) ? '❤️' : '🖤'; }
+        document.getElementById('hearts-display').innerText = heartStr;
+        
+        if (hp <= 0) {
+            document.getElementById('sleep-msg').innerHTML = `오늘은 ${playerName} 너무 피곤해요.<br>코~ 자고 내일 다시 만나요!`;
+            showScreen('screen-sleep');
+        }
+    }
+
+    function resetHearts() {
+        heartsData['warrior.png'] = 5;
+        heartsData['princess.png'] = 5;
+        localStorage.setItem('hangeulHearts', JSON.stringify(heartsData));
+        alert("하트가 충전되었습니다! (부모님 모드)");
+        showScreen('screen-turn');
+    }
+
+    // 룰렛(순서 정하기) 함수
+    let slotInterval;
+    function startTurnSlot() {
+        unlockAudioAndTTS();
+        const display = document.getElementById('slot-name-display');
+        const names = ["연아", "연우"];
+        let count = 0;
+        
+        slotInterval = setInterval(() => {
+            display.innerText = names[count % 2];
+            count++;
+        }, 100);
+
+        setTimeout(() => {
+            clearInterval(slotInterval);
+            const winner = names[Math.floor(Math.random() * 2)];
+            display.innerText = winner + " 당첨!!";
+            playTTS(winner + " 먼저 모험을 떠나세요!");
+            
+            setTimeout(() => {
+                showScreen('screen-char-select');
+                if(winner === "연아") document.getElementById('char-select-title').innerText = "멋진 공주를 선택하세요!";
+                else document.getElementById('char-select-title').innerText = "용감한 전사를 선택하세요!";
+            }, 2500);
+        }, 2000);
+    }
+
+    function selectChar(imgSrc, name) {
         playerImgSrc = imgSrc;
-        if(audioCtx.state === 'suspended') audioCtx.resume(); 
-        showScreen('screen-category');
+        playerName = name; // 맞춤형 칭찬을 위한 이름 저장
+        updateHeartsDisplay();
+        if(heartsData[playerImgSrc] > 0) {
+            showScreen('screen-category');
+            playBGM('map');
+        }
     }
 
     function showMap(categoryKey) {
         const cat = categories[categoryKey];
         document.getElementById('map-title').innerText = cat.title;
-        
         const listDiv = document.getElementById('dungeon-list');
         listDiv.innerHTML = ''; 
         
@@ -355,8 +510,32 @@
             btn.innerHTML = `${d.icon}<br><span style="font-size:24px;">${d.title}</span>`;
             listDiv.appendChild(btn);
         });
-        
         showScreen('screen-map');
+    }
+
+    function showCollection() {
+        const petList = document.getElementById('pet-list');
+        petList.innerHTML = '';
+        
+        pets.forEach((pet, index) => {
+            const btn = document.createElement('div');
+            const isUnlocked = index < unlockedPets;
+            const isEquipped = equippedPet === pet.id;
+            
+            btn.className = `pet-box ${isUnlocked ? '' : 'pet-locked'} ${isEquipped ? 'pet-equipped' : ''}`;
+            btn.innerHTML = `<img src="${pet.id}" onerror="this.outerHTML='<div style=\\'font-size:60px;\\'>${pet.icon}</div>'">`;
+            
+            if (isUnlocked) {
+                btn.onclick = () => {
+                    equippedPet = pet.id;
+                    localStorage.setItem('equippedPet', equippedPet);
+                    showCollection(); // 화면 갱신
+                    playTTS(`${pet.name}와 함께 모험을 떠나요!`);
+                };
+            }
+            petList.appendChild(btn);
+        });
+        showScreen('screen-collection');
     }
 
     function enterDungeon(dungeonIdx) {
@@ -366,11 +545,9 @@
         showScreen('screen-quiz');
     }
 
-    // 퀴즈 옵션 버튼 렌더링 함수 (재사용 및 섞기 위함)
     function renderQuizOptions(optionsArray, correctText) {
         const optionsDiv = document.getElementById('quiz-options');
         optionsDiv.innerHTML = '';
-        
         const shuffledOptions = shuffleArray(optionsArray);
         
         shuffledOptions.forEach((optText) => {
@@ -378,7 +555,6 @@
             btn.className = 'option-btn';
             btn.innerText = optText;
             btn.onclick = () => {
-                // 비활성화(회색) 상태면 클릭 무시
                 if (btn.classList.contains('disabled')) return;
                 checkAnswer(optText, correctText);
             };
@@ -389,15 +565,12 @@
     function loadQuiz() {
         const d = dungeons[currentDungeonIndex];
         const q = d.quizzes[currentQuizIndex];
-        const totalQ = d.quizzes.length;
         
-        document.getElementById('quiz-progress').innerText = `문제 ${currentQuizIndex + 1} / ${totalQ}`;
+        document.getElementById('quiz-progress').innerText = `문제 ${currentQuizIndex + 1} / ${d.quizzes.length}`;
         document.getElementById('quiz-image').innerHTML = q.img;
         document.getElementById('quiz-text').innerText = q.text;
         
-        // 옵션 버튼 렌더링
         renderQuizOptions(d.options, q.correct);
-
         setTimeout(speakQuestion, 300);
     }
 
@@ -407,7 +580,8 @@
         
         if (selectedText === correctText) {
             playSound('correct');
-            // 황금빛 텍스트 효과 적용
+            // 맞춤형 칭찬!
+            playTTS(`${playerName} 최고! 정답이에요.`);
             icon.innerHTML = `<div class="golden-text">${correctText}</div>`;
             overlay.style.display = 'flex';
             
@@ -419,24 +593,18 @@
                 } else {
                     loadQuiz();
                 }
-            }, 2000); // 황금 텍스트 감상 시간 2초 부여
+            }, 2000);
         } else {
             playSound('wrong');
-            
-            // 모든 버튼을 회색으로 만들어 클릭 막기
             const btns = document.querySelectorAll('.option-btn');
             btns.forEach(b => b.classList.add('disabled'));
 
-            // 다시 생각해 보세요 문구 표시
             icon.innerHTML = '<div class="think-again-msg">❌<br><br>다시 한번<br>생각해 보세요!</div>';
             overlay.style.display = 'flex';
             
-            // 2초 쿨다운 대기
             setTimeout(() => { 
                 overlay.style.display = 'none'; 
-                // 보기 위치 다시 섞기
-                const d = dungeons[currentDungeonIndex];
-                renderQuizOptions(d.options, correctText);
+                renderQuizOptions(dungeons[currentDungeonIndex].options, correctText);
             }, 2000);
         }
     }
@@ -449,6 +617,7 @@
 
     function startBattle() {
         showScreen('screen-battle');
+        playBGM('battle');
         const d = dungeons[currentDungeonIndex];
         const p = document.getElementById('battle-player');
         const mContainer = document.getElementById('battle-monster-container');
@@ -459,9 +628,17 @@
         document.getElementById('btn-attack').style.display = 'inline-block';
         document.getElementById('btn-return-map').style.display = 'none';
         
+        // 펫 장착 여부 확인
+        let petHtml = '';
+        if (equippedPet) {
+            // 못 불러오면 에러 시 숨김 처리
+            petHtml = `<img src="${equippedPet}" class="equipped-pet" onerror="this.style.display='none'">`;
+        }
+
         p.innerHTML = `
             <img src="${playerImgSrc}" class="character-body ${d.aura}" onerror="this.outerHTML='<div class=\\'character-body ${d.aura}\\' style=\\'font-size:100px; line-height:130px;\\'>👤</div>'">
             <img src="${d.item}" class="equipped-weapon" id="weapon-img" style="${d.weaponStyle}" onerror="this.style.display='none'">
+            ${petHtml}
         `;
         
         mContainer.innerHTML = `
@@ -482,8 +659,7 @@
         const hpBar = document.getElementById('monster-hp-bar');
         
         monsterCurrentHp--;
-        const hpPercentage = (monsterCurrentHp / monsterMaxHp) * 100;
-        hpBar.style.width = hpPercentage + "%";
+        hpBar.style.width = ((monsterCurrentHp / monsterMaxHp) * 100) + "%";
         
         const d = dungeons[currentDungeonIndex];
         const soundType = d.effect === 'effect-magic' ? 'hit_magic' : (d.effect === 'effect-fire' ? 'hit_fire' : 'hit_sword');
@@ -508,6 +684,19 @@
             
             monster.classList.add('anim-die');
             playSound('victory');
+            fireConfetti(); // 폭죽 발사!
+            
+            // 승리 맞춤형 칭찬
+            playTTS(`괴물을 물리쳤어요! ${playerName} 대단해요!`);
+            
+            // 하트 차감 및 도감(펫) 해금 로직
+            heartsData[playerImgSrc]--;
+            localStorage.setItem('hangeulHearts', JSON.stringify(heartsData));
+            
+            if(unlockedPets < 10) {
+                unlockedPets++;
+                localStorage.setItem('hangeulPets', unlockedPets);
+            }
             
             p.style.transition = 'transform 0.2s';
             setTimeout(() => p.style.transform = 'translateY(-30px)', 100);
@@ -517,12 +706,16 @@
             
             setTimeout(() => {
                 document.getElementById('btn-return-map').style.display = 'inline-block';
-            }, 1000);
+            }, 2500);
         }
     }
 
     function returnToCategory() {
-        showScreen('screen-category');
+        updateHeartsDisplay(); // 하트 고갈 확인 후 이동
+        if(heartsData[playerImgSrc] > 0) {
+            playBGM('map');
+            showScreen('screen-category');
+        }
     }
 </script>
 
