@@ -55,12 +55,13 @@
         @keyframes floatPet { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         @keyframes petAttack { 0% { transform: translateX(0) scale(1); } 50% { transform: translateX(40px) scale(1.2); } 100% { transform: translateX(0) scale(1); } }
         @keyframes happyJump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
-        /* 구출된 펫이 날아와서 고정되도록 forwards 사용 */
-        @keyframes flyToPlayer { 0% { transform: translate(0, 0) scaleX(-1); } 100% { transform: translate(-200px, -20px) scaleX(-1); } } 
+        
+        /* 반전된 펫 전용 해피 점프 애니메이션 */
+        @keyframes happyJumpFlipped { 0%, 100% { transform: scaleX(-1) translateY(0); } 50% { transform: scaleX(-1) translateY(-30px); } }
         
         .anim-pet-attack { animation: petAttack 0.25s ease !important; }
         .anim-happy-jump { animation: happyJump 0.5s ease-in-out infinite !important; }
-        .anim-fly-to-player { animation: flyToPlayer 1s ease-in-out forwards !important; }
+        .anim-happy-jump-flipped { animation: happyJumpFlipped 0.5s ease-in-out infinite !important; }
 
         .hp-container { width: 120px; height: 20px; background-color: #bdc3c7; border-radius: 10px; margin: 0 auto 10px auto; overflow: hidden; border: 3px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.2); }
         .hp-bar { width: 100%; height: 100%; background-color: #e74c3c; transition: width 0.1s linear; }
@@ -105,13 +106,20 @@
         }
 
         .slot-name { font-size: 80px; font-weight: bold; color: #e74c3c; background: white; padding: 20px 50px; border-radius: 20px; border: 5px solid #c0392b; display: inline-block; min-width: 200px;}
-
-        /* 포로 펫 쇠사슬 스타일 */
         .chain-mark { position: absolute; font-size: 35px; z-index: 10; opacity: 0.9; }
 
+        /* 모바일 퀴즈 잘림 방지 극대화 */
         @media (max-width: 500px) {
-            h1 { font-size: 28px; margin-bottom: 10px; }
-            .option-btn { font-size: 22px; padding: 12px; }
+            .screen { padding: 20px 10px; }
+            h1 { font-size: 26px; margin-bottom: 5px; }
+            #quiz-progress { font-size: 16px; margin-bottom: 5px; }
+            #quiz-image { margin: 5px 0; }
+            #quiz-image img { max-height: 15vh; }
+            .speaker-btn { width: 50px; height: 50px; font-size: 24px; margin-bottom: 5px; }
+            
+            .options-grid { gap: 8px; margin-top: 10px; }
+            .option-btn { font-size: 20px; padding: 12px 10px; }
+            
             .char-box, .category-box { padding: 15px; width: 140px; }
             .dungeon-box { width: 120px; font-size: 40px; padding: 15px 5px; }
             .stamp { font-size: 16px; padding: 3px 5px; top: 5px; right: 5px; }
@@ -128,6 +136,9 @@
 </head>
 <body>
 
+<audio id="bgm-map" src="bgm_map.mp3" loop preload="auto"></audio>
+<audio id="bgm-battle" src="bgm_battle.mp3" loop preload="auto"></audio>
+
 <div id="game-container">
     <div id="feedback-overlay"><div id="feedback-icon"></div></div>
     
@@ -137,7 +148,6 @@
     <!-- 0. 시작 화면 -->
     <div id="screen-start" class="screen active">
         <h1 style="font-size: 50px;">한글 마스터 대모험</h1>
-        <!-- Audio 우회를 위해 직접 onclick에서 호출 -->
         <button onclick="unlockAudioAndStart()" style="font-size: 30px; padding: 20px 50px; margin-top: 40px; animation: floatPet 2s infinite;">터치해서 시작하기!</button>
     </div>
 
@@ -248,11 +258,13 @@
     let monsterMaxHp = 7;
     let monsterCurrentHp = 7;
     let isMonsterDead = false;
+    let ttsUnlocked = false; 
 
-    // 모바일 호환성을 위한 오디오 객체 생성
+    // 오디오 컨텍스트
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const bgmMap = new Audio('bgm_map.mp3'); bgmMap.loop = true; bgmMap.volume = 0.3;
-    const bgmBattle = new Audio('bgm_battle.mp3'); bgmBattle.loop = true; bgmBattle.volume = 0.4;
+    const bgmMap = document.getElementById('bgm-map');
+    const bgmBattle = document.getElementById('bgm-battle');
+    bgmMap.volume = 0.3; bgmBattle.volume = 0.4;
 
     const categories = {
         normal: { title: "일반 던전", dungeons: [1, 2, 3] },
@@ -346,7 +358,7 @@
                 { text: "이 그림은 무엇일까요?", tts: "비누를 고르세요.", img: '<img src="soap.png" onerror="this.outerHTML=\'<div style=font-size:120px;>🧼</div>\'">', correct: "비누" }
             ]
         },
-        8: {
+        8: { // 동물 보스
             title: "동물", icon: "🐶", monster: 'monster8.png', item: 'item8.png', aura: 'aura-green', effect: 'effect-magic',
             weaponStyle: 'width: 80px; height: 80px; transform: rotate(0deg) scale(1.3); right: -40px; top: 15px;',
             options: ["돼지", "오리", "병아리", "강아지", "소", "고양이"],
@@ -374,11 +386,11 @@
     function unlockAudioAndStart() {
         if(audioCtx.state === 'suspended') audioCtx.resume();
         
-        bgmMap.play().then(() => bgmMap.pause()).catch(e=>{});
-        bgmBattle.play().then(() => bgmBattle.pause()).catch(e=>{});
+        bgmMap.play().catch(e=>{});
+        bgmBattle.play().catch(e=>{});
         
         let u = new SpeechSynthesisUtterance('출발');
-        u.volume = 0.05; 
+        u.volume = 0.01; 
         window.speechSynthesis.speak(u);
         
         showScreen('screen-turn');
@@ -447,8 +459,9 @@
         utterance.lang = 'ko-KR'; 
         utterance.pitch = 1.2; 
         utterance.rate = 0.95; 
-        // 삼성을 위한 미세 딜레이
-        setTimeout(() => window.speechSynthesis.speak(utterance), 50);
+        
+        // 삼성 씹힘 방지
+        setTimeout(() => { window.speechSynthesis.speak(utterance); }, 50);
     }
 
     function speakQuestion() {
@@ -729,7 +742,7 @@
         document.getElementById('btn-attack').style.display = 'inline-block';
         document.getElementById('btn-return-map').style.display = 'none';
         
-        // 장착 펫 렌더링 초기화 시 클래스 깨끗하게 (애니메이션 꼬임 방지)
+        // 펫 셋업 시 이전 전투의 점프 애니메이션 등을 지우기 위해 깔끔하게 재렌더링
         let petHtml = '';
         const pos = [ 'top: -60px; left: 35px;', 'top: -10px; left: -40px;', 'top: 60px; left: -40px;' ];
         equippedPets.forEach((petId, idx) => {
@@ -741,20 +754,20 @@
             <img src="${d.item}" class="equipped-weapon" id="weapon-img" style="${d.weaponStyle}" onerror="this.style.display='none'">
             ${petHtml}
         `;
-        p.className = 'fighter'; // 점프 애니메이션 초기화
+        // p의 기존 점프 클래스 초기화
+        p.className = 'fighter';
         
-        // 끝판대장(8번) 보스 세팅 및 포로 펫 연출 강화
         let monsterSize = (currentDungeonIndex === 8) ? 'width: 220px; height: 220px; margin-bottom: -15px;' : 'width: 140px; height: 140px;';
         let trappedHtml = '';
         if (currentDungeonIndex === 8 && unlockedPets < 10) {
             let nextPet = pets[unlockedPets];
-            // 펫 스케일 반전(왼쪽 봄), 컬러 유지, 쇠사슬 3개 칭칭 감기
+            // 펫 위치를 1시 방향 (right: 10px, top: -30px)으로 조정, 좌우 반전(scaleX-1), 컬러 유지, 쇠사슬 중앙 겹침
             trappedHtml = `
-                <div id="trapped-pet-container" style="position: absolute; right: -70px; top: 30px; z-index: 1;">
+                <div id="trapped-pet-container" style="position: absolute; right: 10px; top: -30px; z-index: 1;">
                     <img id="freed-pet" src="${nextPet.id}" style="width: 80px; height: 80px; transform: scaleX(-1);" onerror="this.outerHTML='<div style=\\'font-size:50px; transform:scaleX(-1);\\'>${nextPet.icon}</div>'">
-                    <div class="chain-mark" style="top: 0px; left: 5px;">⛓️</div>
-                    <div class="chain-mark" style="top: 20px; left: 15px;">⛓️</div>
-                    <div class="chain-mark" style="top: 40px; left: 5px;">⛓️</div>
+                    <div class="chain-mark" style="top: 10px; left: 20px;">⛓️</div>
+                    <div class="chain-mark" style="top: 30px; left: 20px;">⛓️</div>
+                    <div class="chain-mark" style="top: 50px; left: 20px;">⛓️</div>
                 </div>
             `;
         }
@@ -808,7 +821,7 @@
             playSound('victory');
             fireConfetti();
             
-            // 모든 아군 기쁨 점프!
+            // 모든 아군 기쁨 점프! (일반 전투 시에는 여기서만 점프 발생)
             p.classList.add('anim-happy-jump');
             petsElements.forEach(pet => pet.classList.add('anim-happy-jump'));
             
@@ -816,16 +829,17 @@
             if (currentDungeonIndex === 8 && unlockedPets < 10) {
                 const tContainer = document.getElementById('trapped-pet-container');
                 if (tContainer) {
-                    // 쇠사슬 3개 삭제
+                    // 쇠사슬 삭제
                     document.querySelectorAll('.chain-mark').forEach(c => c.remove());
+                    
                     const freedPet = document.getElementById('freed-pet');
-                    freedPet.classList.add('anim-fly-to-player'); 
+                    // 컨테이너를 왼쪽으로 이동 (플레이어 쪽 중간)
+                    tContainer.style.transition = 'transform 1s ease-in-out';
+                    tContainer.style.transform = 'translate(-180px, 40px)';
                     
                     setTimeout(() => {
-                        // 날아온 후 중간에 고정 및 방방 뛰기
-                        freedPet.classList.remove('anim-fly-to-player');
-                        freedPet.style.transform = 'translate(-200px, -20px) scaleX(-1)'; 
-                        freedPet.classList.add('anim-happy-jump'); 
+                        // 펫 이미지만 점프 (좌우 반전된 상태 유지하는 전용 애니메이션)
+                        freedPet.classList.add('anim-happy-jump-flipped'); 
                     }, 1000);
                 }
             }
