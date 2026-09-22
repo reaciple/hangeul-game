@@ -23,7 +23,7 @@
         #btn-attack:active { transform: translateY(8px); box-shadow: 0 0 0 #c0392b; }
 
         .char-box, .dungeon-box, .category-box, .pet-box { background: white; border: 4px solid #bdc3c7; border-radius: 20px; padding: 20px; margin: 10px; cursor: pointer; display: inline-block; width: 220px; }
-        .category-box { font-size: 60px; padding: 40px 20px; width: 250px; }
+        .category-box { font-size: 60px; padding: 40px 20px; width: 280px; }
         .dungeon-box { font-size: 50px; position: relative; } 
         
         .dungeon-locked { filter: grayscale(100%); opacity: 0.5; pointer-events: none; }
@@ -55,13 +55,14 @@
         @keyframes floatPet { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         @keyframes petAttack { 0% { transform: translateX(0) scale(1); } 50% { transform: translateX(40px) scale(1.2); } 100% { transform: translateX(0) scale(1); } }
         @keyframes happyJump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
-        
-        /* 반전된 펫 전용 해피 점프 애니메이션 */
         @keyframes happyJumpFlipped { 0%, 100% { transform: scaleX(-1) translateY(0); } 50% { transform: scaleX(-1) translateY(-30px); } }
+        
+        @keyframes flyToPlayer { 0% { transform: translate(0, 0) scaleX(-1); } 100% { transform: translate(-220px, 40px) scaleX(-1); } } 
         
         .anim-pet-attack { animation: petAttack 0.25s ease !important; }
         .anim-happy-jump { animation: happyJump 0.5s ease-in-out infinite !important; }
         .anim-happy-jump-flipped { animation: happyJumpFlipped 0.5s ease-in-out infinite !important; }
+        .anim-fly-to-player { animation: flyToPlayer 1s ease-in-out forwards !important; }
 
         .hp-container { width: 120px; height: 20px; background-color: #bdc3c7; border-radius: 10px; margin: 0 auto 10px auto; overflow: hidden; border: 3px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.2); }
         .hp-bar { width: 100%; height: 100%; background-color: #e74c3c; transition: width 0.1s linear; }
@@ -106,9 +107,8 @@
         }
 
         .slot-name { font-size: 80px; font-weight: bold; color: #e74c3c; background: white; padding: 20px 50px; border-radius: 20px; border: 5px solid #c0392b; display: inline-block; min-width: 200px;}
-        .chain-mark { position: absolute; font-size: 35px; z-index: 10; opacity: 0.9; }
+        .chain-mark { position: absolute; z-index: 10; opacity: 0.9; font-size: 24px; text-shadow: 0 0 5px black; }
 
-        /* 모바일 퀴즈 잘림 방지 극대화 */
         @media (max-width: 500px) {
             .screen { padding: 20px 10px; }
             h1 { font-size: 26px; margin-bottom: 5px; }
@@ -123,7 +123,7 @@
             .char-box, .category-box { padding: 15px; width: 140px; }
             .dungeon-box { width: 120px; font-size: 40px; padding: 15px 5px; }
             .stamp { font-size: 16px; padding: 3px 5px; top: 5px; right: 5px; }
-            .category-box { font-size: 40px; padding: 20px 10px; width: 160px; }
+            .category-box { font-size: 32px; padding: 20px 10px; width: 180px; }
             #btn-attack { font-size: 32px; padding: 15px 40px; }
             .battle-stage { padding: 20px; height: 230px;}
             .golden-text { font-size: 80px; }
@@ -173,18 +173,17 @@
         </div>
     </div>
 
-    <!-- 3. 모험 지역 선택 -->
+    <!-- 3. 모험 지역 선택 (카테고리 복구) -->
     <div id="screen-category" class="screen">
+        <button class="btn-back" onclick="changePlayer()">⬅️ 캐릭터 바꾸기</button>
         <h1>어느 지역으로 갈까요?</h1>
         <div>
-            <div class="category-box" onclick="showMap('normal')">
-                🗺️<br><span style="font-size:26px;">일반 던전</span>
+            <div class="category-box" onclick="showMap('hangeul1')">
+                📚<br><span style="font-size:32px;">한글나라 던전1</span>
             </div>
-            <div class="category-box" onclick="showMap('hangeul')">
-                📚<br><span style="font-size:26px;">한글나라 던전</span>
-            </div>
+            <!-- 나중에 이곳에 한글나라 던전2, 3를 추가하시면 됩니다! -->
         </div>
-        <button style="background-color:#9b59b6; box-shadow: 0 5px 0 #8e44ad; margin-top:30px;" onclick="showCollection()">📖 내 도감(펫) 보기</button>
+        <button style="background-color:#9b59b6; box-shadow: 0 5px 0 #8e44ad; margin-top:30px; padding: 15px 30px; font-size: 26px;" onclick="showCollection()">📖 내 도감(펫) 보기</button>
     </div>
 
     <!-- 4. 세부 던전 선택 -->
@@ -246,29 +245,27 @@
 <script>
     let playerImgSrc = '';
     let playerName = '';
-    let currentCategoryKey = 'normal';
+    let currentCategoryKey = 'hangeul1';
     let currentDungeonIndex = 1;
     let currentQuizIndex = 0;
     
+    // 로컬 스토리지 (하트는 공통, 나머지는 캐릭터별)
     let heartsData = JSON.parse(localStorage.getItem('hangeulHearts')) || { 'warrior.png': 5, 'princess.png': 5 };
-    let unlockedPets = parseInt(localStorage.getItem('hangeulPets')) || 0;
-    let equippedPets = JSON.parse(localStorage.getItem('hangeulEquippedPets')) || [];
-    let categoryProgress = JSON.parse(localStorage.getItem('hangeulProgress')) || { normal: [], hangeul: [] };
+    
+    let unlockedPets = 0;
+    let equippedPets = [];
+    let categoryProgress = { hangeul1: [] }; // 확장 가능한 객체 구조 복구
 
     let monsterMaxHp = 7;
     let monsterCurrentHp = 7;
     let isMonsterDead = false;
-    let ttsUnlocked = false; 
 
-    // 오디오 컨텍스트
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const bgmMap = document.getElementById('bgm-map');
-    const bgmBattle = document.getElementById('bgm-battle');
-    bgmMap.volume = 0.3; bgmBattle.volume = 0.4;
+    const bgmMap = new Audio('bgm_map.mp3'); bgmMap.loop = true; bgmMap.volume = 0.3;
+    const bgmBattle = new Audio('bgm_battle.mp3'); bgmBattle.loop = true; bgmBattle.volume = 0.4;
 
     const categories = {
-        normal: { title: "일반 던전", dungeons: [1, 2, 3] },
-        hangeul: { title: "한글나라 던전", dungeons: [4, 5, 6, 7, 8] }
+        hangeul1: { title: "한글나라 던전1", dungeons: [1, 2, 3, 4, 5] }
     };
 
     const pets = [
@@ -281,36 +278,6 @@
 
     const dungeons = {
         1: {
-            title: "초보", icon: "🌲", monster: 'monster1.png', item: 'item1.png', aura: 'aura-blue', effect: 'effect-slash',
-            weaponStyle: 'width: 80px; height: 80px; transform: rotate(0deg) scale(1.3); right: -30px; top: 10px;',
-            options: ["ㄱ", "ㄴ", "ㄷ", "ㄹ"],
-            quizzes: [
-                { text: "기역을 고르세요.", tts: "기역을 고르세요.", img: '<div style="font-size:120px;">❓</div>', correct: "ㄱ" },
-                { text: "니은을 고르세요.", tts: "니은을 고르세요.", img: '<div style="font-size:120px;">❓</div>', correct: "ㄴ" },
-                { text: "디귿을 고르세요.", tts: "디귿을 고르세요.", img: '<div style="font-size:120px;">❓</div>', correct: "ㄷ" }
-            ]
-        },
-        2: {
-            title: "기초", icon: "🌟", monster: 'monster2.png', item: 'item2.png', aura: 'aura-yellow', effect: 'effect-magic',
-            weaponStyle: 'width: 80px; height: 80px; transform: rotate(15deg) scale(1.4); right: -40px; top: 10px;',
-            options: ["ㅏ", "ㅑ", "ㅓ", "ㅕ"],
-            quizzes: [
-                { text: "아 를 고르세요.", tts: "아 를 고르세요.", img: '<div style="font-size:120px;">❓</div>', correct: "ㅏ" },
-                { text: "야 를 고르세요.", tts: "야 를 고르세요.", img: '<div style="font-size:120px;">❓</div>', correct: "ㅑ" },
-                { text: "어 를 고르세요.", tts: "어 를 고르세요.", img: '<div style="font-size:120px;">❓</div>', correct: "ㅓ" }
-            ]
-        },
-        3: {
-            title: "동물", icon: "🐯", monster: 'monster3.png', item: 'item3.png', aura: 'aura-red', effect: 'effect-fire',
-            weaponStyle: 'width: 90px; height: 90px; transform: rotate(-45deg) scale(1.6); right: -50px; top: 40px;', 
-            options: ["사자", "무플론", "사슴", "호랑이", "코끼리", "기린"],
-            quizzes: [
-                { text: "이 그림은 무엇일까요?", tts: "호랑이를 고르세요.", img: '<img src="tiger.png" onerror="this.outerHTML=\'<div style=font-size:120px;>🐯</div>\'">', correct: "호랑이" },
-                { text: "이 그림은 무엇일까요?", tts: "사자를 고르세요.", img: '<div style="font-size:120px;">🦁</div>', correct: "사자" },
-                { text: "이 그림은 무엇일까요?", tts: "코끼리를 고르세요.", img: '<div style="font-size:120px;">🐘</div>', correct: "코끼리" }
-            ]
-        },
-        4: {
             title: "과일", icon: "🍉", monster: 'monster4.png', item: 'item4.png', aura: 'aura-green', effect: 'effect-slash',
             weaponStyle: 'width: 80px; height: 80px; transform: rotate(10deg) scale(1.3); right: -30px; top: 20px;',
             options: ["사과", "바나나", "포도", "수박"],
@@ -321,7 +288,7 @@
                 { text: "이 그림은 무엇일까요?", tts: "수박을 고르세요.", img: '<img src="watermelon.png" onerror="this.outerHTML=\'<div style=font-size:120px;>🍉</div>\'">', correct: "수박" }
             ]
         },
-        5: {
+        2: {
             title: "의복", icon: "👗", monster: 'monster5.png', item: 'item5.png', aura: 'aura-purple', effect: 'effect-magic',
             weaponStyle: 'width: 80px; height: 80px; transform: rotate(0deg) scale(1.4); right: -40px; top: 15px;',
             options: ["양말", "바지", "치마", "모자"],
@@ -332,7 +299,7 @@
                 { text: "이 그림은 무엇일까요?", tts: "모자를 고르세요.", img: '<img src="hat.png" onerror="this.outerHTML=\'<div style=font-size:120px;>🧢</div>\'">', correct: "모자" }
             ]
         },
-        6: {
+        3: {
             title: "음식", icon: "🍞", monster: 'monster6.png', item: 'item6.png', aura: 'aura-yellow', effect: 'effect-fire',
             weaponStyle: 'width: 90px; height: 90px; transform: rotate(15deg) scale(1.5); right: -40px; top: 20px;',
             options: ["빵", "물", "사탕", "아이스크림", "우유", "주스"],
@@ -345,7 +312,7 @@
                 { text: "이 그림은 무엇일까요?", tts: "주스를 고르세요.", img: '<img src="juice.png" onerror="this.outerHTML=\'<div style=font-size:120px;>🧃</div>\'">', correct: "주스" }
             ]
         },
-        7: {
+        4: {
             title: "화장실", icon: "🪥", monster: 'monster7.png', item: 'item7.png', aura: 'aura-blue', effect: 'effect-slash',
             weaponStyle: 'width: 80px; height: 80px; transform: rotate(-20deg) scale(1.3); right: -30px; top: 30px;',
             options: ["컵", "수건", "휴지", "치약", "칫솔", "비누"],
@@ -358,7 +325,7 @@
                 { text: "이 그림은 무엇일까요?", tts: "비누를 고르세요.", img: '<img src="soap.png" onerror="this.outerHTML=\'<div style=font-size:120px;>🧼</div>\'">', correct: "비누" }
             ]
         },
-        8: { // 동물 보스
+        5: { 
             title: "동물", icon: "🐶", monster: 'monster8.png', item: 'item8.png', aura: 'aura-green', effect: 'effect-magic',
             weaponStyle: 'width: 80px; height: 80px; transform: rotate(0deg) scale(1.3); right: -40px; top: 15px;',
             options: ["돼지", "오리", "병아리", "강아지", "소", "고양이"],
@@ -382,7 +349,7 @@
         return arr;
     }
 
-    // --- 철통 보안 해제 (첫 화면 클릭 시 오디오/TTS 모두 강제 허용) ---
+    // --- 철통 보안 해제 ---
     function unlockAudioAndStart() {
         if(audioCtx.state === 'suspended') audioCtx.resume();
         
@@ -390,7 +357,7 @@
         bgmBattle.play().catch(e=>{});
         
         let u = new SpeechSynthesisUtterance('출발');
-        u.volume = 0.01; 
+        u.volume = 0.05; 
         window.speechSynthesis.speak(u);
         
         showScreen('screen-turn');
@@ -488,7 +455,7 @@
         document.getElementById(screenId).classList.add('active');
         document.getElementById('game-container').scrollTop = 0;
         
-        const showTopUI = (screenId !== 'screen-start' && screenId !== 'screen-turn' && screenId !== 'screen-battle');
+        const showTopUI = (screenId !== 'screen-start' && screenId !== 'screen-turn' && screenId !== 'screen-battle' && screenId !== 'screen-char-select');
         document.getElementById('hearts-display').style.display = showTopUI ? 'block' : 'none';
         document.getElementById('btn-reset-hearts').style.display = showTopUI ? 'inline-block' : 'none';
     }
@@ -512,15 +479,31 @@
         localStorage.setItem('hangeulHearts', JSON.stringify(heartsData));
         alert("하트가 가득 찼습니다!");
         updateHeartsDisplay();
-        
-        if(document.getElementById('screen-sleep').classList.contains('active')) {
-            showScreen('screen-char-select'); 
-        }
     }
     
     function changePlayer() {
         showScreen('screen-char-select');
         document.getElementById('char-select-title').innerText = "다음 친구가 캐릭터를 고르세요!";
+    }
+
+    // --- 도감 데이터 로드 로직 (캐릭터별 분리 및 확장 호환성) ---
+    function loadPlayerData() {
+        unlockedPets = parseInt(localStorage.getItem(playerImgSrc + '_pets')) || 0;
+        equippedPets = JSON.parse(localStorage.getItem(playerImgSrc + '_equipped')) || [];
+        
+        // 이전 버전 배열 데이터를 객체 형태로 안전하게 변환
+        let progData = JSON.parse(localStorage.getItem(playerImgSrc + '_progress'));
+        if (Array.isArray(progData)) {
+            categoryProgress = { hangeul1: progData };
+        } else {
+            categoryProgress = progData || { hangeul1: [] };
+        }
+    }
+
+    function savePlayerData() {
+        localStorage.setItem(playerImgSrc + '_pets', unlockedPets);
+        localStorage.setItem(playerImgSrc + '_equipped', JSON.stringify(equippedPets));
+        localStorage.setItem(playerImgSrc + '_progress', JSON.stringify(categoryProgress));
     }
 
     function togglePet(petId) {
@@ -535,18 +518,16 @@
                 equippedPets.push(petId);
             }
         }
-        localStorage.setItem('hangeulEquippedPets', JSON.stringify(equippedPets));
+        savePlayerData();
         showCollection();
     }
 
     function resetPets() {
         unlockedPets = 0;
         equippedPets = [];
-        categoryProgress = { normal: [], hangeul: [] };
-        localStorage.setItem('hangeulPets', unlockedPets);
-        localStorage.setItem('hangeulEquippedPets', JSON.stringify(equippedPets));
-        localStorage.setItem('hangeulProgress', JSON.stringify(categoryProgress));
-        alert("도감과 진행도가 모두 초기화되었습니다!");
+        categoryProgress = { hangeul1: [] };
+        savePlayerData();
+        alert(playerName + "의 도감과 진행도가 모두 초기화되었습니다!");
         showCollection();
     }
 
@@ -568,9 +549,7 @@
             playTTS(winner + " 먼저 모험을 떠나세요!");
             
             setTimeout(() => {
-                showScreen('screen-char-select');
-                if(winner === "연아") document.getElementById('char-select-title').innerText = "멋진 공주를 선택하세요!";
-                else document.getElementById('char-select-title').innerText = "용감한 전사를 선택하세요!";
+                changePlayer();
             }, 2500);
         }, 2000);
     }
@@ -578,21 +557,25 @@
     function selectChar(imgSrc, name) {
         playerImgSrc = imgSrc;
         playerName = name; 
+        loadPlayerData(); 
         updateHeartsDisplay();
+        
         if(heartsData[playerImgSrc] > 0) {
-            showScreen('screen-category');
             playBGM('map');
+            // 캐릭터 선택 후 카테고리 화면(한글나라 던전1 메뉴)으로 이동!
+            showScreen('screen-category');
         }
     }
 
     function showMap(categoryKey) {
-        currentCategoryKey = categoryKey; 
+        currentCategoryKey = categoryKey;
         const cat = categories[categoryKey];
         document.getElementById('map-title').innerText = cat.title;
         
         const listDiv = document.getElementById('dungeon-list');
         listDiv.innerHTML = ''; 
         
+        if (!categoryProgress[categoryKey]) categoryProgress[categoryKey] = [];
         const progressArr = categoryProgress[categoryKey];
         
         cat.dungeons.forEach((dIdx, index) => {
@@ -623,9 +606,9 @@
 
     function showCollection() {
         const previewDiv = document.getElementById('pet-preview');
-        let html = `<img src="${playerImgSrc || 'warrior.png'}" style="width:120px; height:120px; z-index:2; position:relative;" onerror="this.outerHTML='<div style=\\'font-size:80px;\\'>👤</div>'">`;
+        let html = `<img src="${playerImgSrc}" style="width:120px; height:120px; z-index:2; position:relative;" onerror="this.outerHTML='<div style=\\'font-size:80px;\\'>👤</div>'">`;
         
-        const pos = [ 'top: -60px; left: 35px;', 'top: -10px; left: -40px;', 'top: 60px; left: -40px;' ];
+        const pos = [ 'top: -50px; left: 30px;', 'top: -10px; left: -15px;', 'top: 50px; left: -15px;' ];
         equippedPets.forEach((petId, idx) => {
             html += `<img src="${petId}" style="position:absolute; width:60px; height:60px; z-index:3; ${pos[idx]} animation: floatPet ${2 + idx*0.2}s ease-in-out infinite;" onerror="this.outerHTML='<div style=\\'position:absolute; ${pos[idx]} font-size:40px; z-index:3;\\'>🐾</div>'">`;
         });
@@ -670,6 +653,7 @@
             btn.innerText = optText;
             btn.onclick = () => {
                 if (btn.classList.contains('disabled')) return;
+                window.speechSynthesis.cancel(); // 빠른 터치 시 즉시 음성 취소
                 checkAnswer(optText, correctText);
             };
             optionsDiv.appendChild(btn);
@@ -685,7 +669,7 @@
         document.getElementById('quiz-text').innerText = q.text;
         
         renderQuizOptions(d.options, q.correct);
-        setTimeout(speakQuestion, 300);
+        speakQuestion(); // 딜레이 없이 띄우자마자 읽게
     }
 
     function checkAnswer(selectedText, correctText) {
@@ -742,9 +726,8 @@
         document.getElementById('btn-attack').style.display = 'inline-block';
         document.getElementById('btn-return-map').style.display = 'none';
         
-        // 펫 셋업 시 이전 전투의 점프 애니메이션 등을 지우기 위해 깔끔하게 재렌더링
         let petHtml = '';
-        const pos = [ 'top: -60px; left: 35px;', 'top: -10px; left: -40px;', 'top: 60px; left: -40px;' ];
+        const pos = [ 'top: -50px; left: 30px;', 'top: -10px; left: -15px;', 'top: 50px; left: -15px;' ];
         equippedPets.forEach((petId, idx) => {
             petHtml += `<img src="${petId}" class="equipped-pet" style="${pos[idx]}" onerror="this.style.display='none'">`;
         });
@@ -754,20 +737,19 @@
             <img src="${d.item}" class="equipped-weapon" id="weapon-img" style="${d.weaponStyle}" onerror="this.style.display='none'">
             ${petHtml}
         `;
-        // p의 기존 점프 클래스 초기화
         p.className = 'fighter';
         
-        let monsterSize = (currentDungeonIndex === 8) ? 'width: 220px; height: 220px; margin-bottom: -15px;' : 'width: 140px; height: 140px;';
+        let monsterSize = (currentDungeonIndex === 5) ? 'width: 250px; height: 250px; margin-bottom: -20px;' : 'width: 140px; height: 140px;';
         let trappedHtml = '';
-        if (currentDungeonIndex === 8 && unlockedPets < 10) {
+        
+        if (currentDungeonIndex === 5 && unlockedPets < 10) {
             let nextPet = pets[unlockedPets];
-            // 펫 위치를 1시 방향 (right: 10px, top: -30px)으로 조정, 좌우 반전(scaleX-1), 컬러 유지, 쇠사슬 중앙 겹침
             trappedHtml = `
-                <div id="trapped-pet-container" style="position: absolute; right: 10px; top: -30px; z-index: 1;">
-                    <img id="freed-pet" src="${nextPet.id}" style="width: 80px; height: 80px; transform: scaleX(-1);" onerror="this.outerHTML='<div style=\\'font-size:50px; transform:scaleX(-1);\\'>${nextPet.icon}</div>'">
-                    <div class="chain-mark" style="top: 10px; left: 20px;">⛓️</div>
-                    <div class="chain-mark" style="top: 30px; left: 20px;">⛓️</div>
-                    <div class="chain-mark" style="top: 50px; left: 20px;">⛓️</div>
+                <div id="trapped-pet-container" style="position: absolute; right: 0px; top: -20px; z-index: 1;">
+                    <img id="freed-pet" src="${nextPet.id}" style="width: 60px; height: 60px; transform: scaleX(-1); object-fit: contain;" onerror="this.outerHTML='<div style=\\'font-size:40px; transform:scaleX(-1);\\'>${nextPet.icon}</div>'">
+                    <div class="chain-mark" style="font-size: 24px; top: 0px; left: 15px;">⛓️</div>
+                    <div class="chain-mark" style="font-size: 24px; top: 20px; left: 15px;">⛓️</div>
+                    <div class="chain-mark" style="font-size: 24px; top: 40px; left: 15px;">⛓️</div>
                 </div>
             `;
         }
@@ -821,48 +803,41 @@
             playSound('victory');
             fireConfetti();
             
-            // 모든 아군 기쁨 점프! (일반 전투 시에는 여기서만 점프 발생)
             p.classList.add('anim-happy-jump');
             petsElements.forEach(pet => pet.classList.add('anim-happy-jump'));
             
-            // 8번 던전 보스 처치 시 구출 연출!
-            if (currentDungeonIndex === 8 && unlockedPets < 10) {
+            if (currentDungeonIndex === 5 && unlockedPets < 10) {
                 const tContainer = document.getElementById('trapped-pet-container');
                 if (tContainer) {
-                    // 쇠사슬 삭제
                     document.querySelectorAll('.chain-mark').forEach(c => c.remove());
                     
                     const freedPet = document.getElementById('freed-pet');
-                    // 컨테이너를 왼쪽으로 이동 (플레이어 쪽 중간)
-                    tContainer.style.transition = 'transform 1s ease-in-out';
-                    tContainer.style.transform = 'translate(-180px, 40px)';
+                    freedPet.classList.add('anim-fly-to-player'); 
                     
                     setTimeout(() => {
-                        // 펫 이미지만 점프 (좌우 반전된 상태 유지하는 전용 애니메이션)
+                        freedPet.classList.remove('anim-fly-to-player');
+                        freedPet.style.transform = 'translate(-180px, 40px) scaleX(-1)'; 
                         freedPet.classList.add('anim-happy-jump-flipped'); 
                     }, 1000);
                 }
             }
             
-            const catKey = (currentDungeonIndex <= 3) ? 'normal' : 'hangeul';
-            const requiredCnt = (catKey === 'normal') ? 3 : 5;
-
-            if (!categoryProgress[catKey].includes(currentDungeonIndex)) {
-                categoryProgress[catKey].push(currentDungeonIndex);
+            if (!categoryProgress[currentCategoryKey]) categoryProgress[currentCategoryKey] = [];
+            
+            if (!categoryProgress[currentCategoryKey].includes(currentDungeonIndex)) {
+                categoryProgress[currentCategoryKey].push(currentDungeonIndex);
             }
 
-            if (categoryProgress[catKey].length >= requiredCnt) {
+            if (categoryProgress[currentCategoryKey].length >= 5) {
                 if (unlockedPets < 10) unlockedPets++;
-                localStorage.setItem('hangeulPets', unlockedPets);
-                playTTS(`축하해요! 구역을 모두 깨서 새로운 펫을 얻었어요!`);
-                categoryProgress[catKey] = []; 
+                playTTS(`축하해요! ${categories[currentCategoryKey].title}을 깨서 새로운 펫을 얻었어요!`);
+                categoryProgress[currentCategoryKey] = []; 
             } else {
                 playTTS(`괴물을 물리쳤어요! ${playerName} 대단해요!`);
             }
             
             heartsData[playerImgSrc]--;
-            localStorage.setItem('hangeulHearts', JSON.stringify(heartsData));
-            localStorage.setItem('hangeulProgress', JSON.stringify(categoryProgress));
+            savePlayerData();
             
             setTimeout(() => {
                 document.getElementById('btn-return-map').style.display = 'inline-block';
